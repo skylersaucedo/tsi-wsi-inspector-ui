@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace bbox_maker
+namespace inspectionUI
 {
     internal static class Program
     {

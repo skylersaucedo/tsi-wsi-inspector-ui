@@ -9,19 +9,34 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace bbox_maker
+namespace inspectionUI
 {
     public partial class frmAddDefect : Form
     {
-        public string DefectListpath = @"C:\Users\sauce\OneDrive\Desktop\bbox_maker-master\bbox_maker\labels.txt";
+        public string defects_path = @"C:\Users\sauce\OneDrive\Desktop\bbox_maker-master\bbox_maker\labels.txt";
+        public string defectslog_path = @"C:\Users\sauce\OneDrive\Desktop\bbox_maker-master\bbox_maker\defectslog.txt";
+
 
         public List<string> currentDefects = new List<string>();
-        public frmAddDefect()
+
+        public DataTable table;
+
+        public Rectangle r;
+
+        public Defect d;
+
+        public frmAddDefect(Defect _d, DataTable _table) //r, imgName, Inspector
         {
             InitializeComponent();
 
+            //Defect d = new Defect();
+
+            table = _table;
+            d = _d;
+
             // populate box with current defects
-            LoadLabels(DefectListpath);
+            LoadLabels(defects_path);
+
         }
 
         public void LoadLabels(string path)
@@ -61,32 +76,96 @@ namespace bbox_maker
         {
             if (String.IsNullOrEmpty(txbxAddNewDefect.Text))
             {
-                // just use selected defect
-                //MessageBox.Show("nothing here");
+                int idx = cmbxLabels.SelectedIndex; //assuming user selected a label from the index
 
-                int idx = cmbxLabels.SelectedIndex;
+                // update defect with selection
 
-                MessageBox.Show("You have selected: " + currentDefects[idx].ToString());
+                Defect newDefect = d;
+
+                newDefect.datetime = DateTime.Now.ToString();
+                newDefect.defect = currentDefects[idx].ToString();
+                newDefect.notes = txbxNotes.Text;
+
+                addDefectToFile(newDefect);
+
+                this.Close(); //added. close the form.
             }
 
             else
             {
-                // Add yes or no, are you sure you want to add this defect?
-                MessageBox.Show("you are adding: " + txbxAddNewDefect.Text);
+                // text in field, so maybe new defect class?
 
-                DialogResult result = MessageBox.Show("Adding a new defect?", "Add new defect?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                DialogResult result = MessageBox.Show("Are you adding a new defect class? ", "New Defect Class?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 if (result == DialogResult.Yes)
                 {
-                    // User clicked Yes
+                    // Yes
 
-                    currentDefects.Add(txbxAddNewDefect.Text);
-                    cmbxLabels.Items.Add(txbxAddNewDefect.Text);
+                    string newDefectClass = txbxAddNewDefect.Text;
+
+                    currentDefects.Add(newDefectClass);
+                    cmbxLabels.Items.Add(newDefectClass);
+
+                    // populate defect object and add to collection
+
+                    Defect newDefect = d;
+                    newDefect.datetime = DateTime.Now.ToString();
+                    newDefect.defect = newDefectClass;
+                    newDefect.notes = txbxNotes.Text;
+
+                    addDefectClasstoIndex(newDefectClass); // add new label to class
+                    addDefectToFile(newDefect); // add new defect to file
+                    this.Close(); //added. close the form.
 
                 }
                 else if (result == DialogResult.No)
                 {
-                    // User clicked No
+                    // User clicked no...so.
+                    this.Close(); //added. close the form.
                 }
+            }
+        }
+
+        public void addDefectClasstoIndex(string newdefect)
+        {
+            try
+            {
+
+                string[] names = File.ReadAllLines(defects_path);
+                string newName = newdefect;
+                Array.Resize(ref names, names.Length + 1);
+                names[names.Length - 1] = newName;
+                File.WriteAllLines(defects_path, names);
+            }
+
+            catch (Exception e)
+            {
+                MessageBox.Show("An error occurred: " + e.Message);
+            }
+        }
+
+        public void addDefectToFile(Defect d)
+        {
+
+            try
+            {
+                
+                string[] records = File.ReadAllLines(defectslog_path);
+
+                string header = records[0];
+
+                //string newrecord = "index, datetime, image_name, h, w, inspector, defect, loc_x, loc_y, def_h, def_w, notes;"; //add new record here
+
+                string newrecord = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", d.index, d.datetime, d.image_name, d.h, d.w, d.inspector, d.defect, d.location_x, d.location_y, d.def_h, d.def_w, d.notes);
+
+                string newName = d.label;
+                Array.Resize(ref records, records.Length + 1);
+                records[records.Length - 1] = newrecord;
+                File.WriteAllLines(defectslog_path, records);
+            }
+
+            catch (Exception e)
+            {
+                MessageBox.Show("An error occurred: " + e.Message);
             }
         }
 
@@ -101,6 +180,25 @@ namespace bbox_maker
             {
                 txbxNotes.Enabled = false;
             }
+        }
+
+        private void txbxAddNewDefect_TextChanged(object sender, EventArgs e)
+        {
+            if (txbxAddNewDefect.Text.Length != 0)
+            {
+                cmbxLabels.Enabled = false;
+            }
+
+            else
+            {
+                cmbxLabels.Enabled = true;
+            }
+            
+        }
+
+        private void btnCancel_Click(object sender, EventArgs e)
+        {
+            this.Close(); 
         }
     }
 }

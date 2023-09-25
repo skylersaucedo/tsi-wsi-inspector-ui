@@ -1,4 +1,4 @@
-﻿namespace bbox_maker
+﻿namespace inspectionUI
 {
     partial class frmAddDefect
     {
@@ -58,6 +58,7 @@
             this.btnCancel.TabIndex = 1;
             this.btnCancel.Text = "Cancel";
             this.btnCancel.UseVisualStyleBackColor = true;
+            this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
             // 
             // cmbxLabels
             // 
@@ -75,6 +76,7 @@
             this.txbxAddNewDefect.Name = "txbxAddNewDefect";
             this.txbxAddNewDefect.Size = new System.Drawing.Size(277, 34);
             this.txbxAddNewDefect.TabIndex = 3;
+            this.txbxAddNewDefect.TextChanged += new System.EventHandler(this.txbxAddNewDefect_TextChanged);
             // 
             // label1
             // 

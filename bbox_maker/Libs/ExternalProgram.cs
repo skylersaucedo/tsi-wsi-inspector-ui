@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace bbox_maker.Lib
+namespace inspectionUI.Lib
 {
     public static class ExternalProgram
     {

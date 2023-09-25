@@ -46,7 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Defects.cs" />
+    <Compile Include="Defect.cs" />
     <Compile Include="frmAddDefect.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -92,13 +92,8 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\UI.MachineLearning\UI.MachineLearning.csproj">
-      <Project>{9884ebe4-6aea-44cc-9304-6e3ecf991905}</Project>
-      <Name>UI.MachineLearning</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="labels.txt" />
+    <Content Include="defectslog.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

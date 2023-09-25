@@ -1,4 +1,4 @@
-﻿using bbox_maker.Properties;
+﻿using inspectionUI.Properties;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace bbox_maker
+namespace inspectionUI
 {
     internal class FileBrowser
     {

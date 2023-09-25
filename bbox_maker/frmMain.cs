@@ -1,4 +1,4 @@
-﻿using bbox_maker.Lib;
+﻿//using inspectionUI.Lib;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -10,14 +10,15 @@ using System.Windows.Forms;
 using System.Xml;
 //using UI.MachineLearning;
 
-namespace bbox_maker
+namespace inspectionUI
 {
 
     public partial class frmMain : Form
     {
         const string INPUT_IMAGE_FOLDER_TITLE = "Input image";
-        public string labelpath = @"C:\Users\sauce\OneDrive\Desktop\bbox_maker-master\bbox_maker\labels.txt";
-
+        public string image_path;
+        public string labelpath = @"C:\Users\sauce\OneDrive\Desktop\inspectionUI-master\inspectionUI\labels.txt";
+        public string defectslog_path = @"C:\Users\sauce\OneDrive\Desktop\bbox_maker-master\bbox_maker\defectslog.txt";
         Point _mousePositionDragStart { get; set; }
         Point _mousePositionDragged { get; set; }
 
@@ -25,15 +26,20 @@ namespace bbox_maker
 
         Rectangle r;
 
-        List<Defects> _loadedDefects;
+        public string Inspector;
+
+        List<Defect> _loadedDefects;
 
         int _imageIndex { get; set; }
+
+        public DataTable table;
+        public int totalDefects;
+        Image orgImg;
 
         public void LoadLabels(string path)
         {
             //
             List<string> lines = new List<string>();
-            //string path = @"C:\example\example.txt";
 
             try
             {
@@ -56,7 +62,7 @@ namespace bbox_maker
 
             foreach (string line in lines)
             {
-                cmbxLabel.Items.Add(line);
+                //cmbxLabel.Items.Add(line);
             }
 
         }
@@ -66,6 +72,14 @@ namespace bbox_maker
             inputImageFolder = "C:\\Users\\sauce\\OneDrive\\Desktop\\make_pano\\panos";
             InitializeComponent();
             uiInputImageFolder.Text = inputImageFolder;
+
+            //pictureBox1.SetStyle(ControlStyles.Selectable, true);
+            Inspector = txbxInspector.Text;
+
+            table = new DataTable();
+            tbarZoom.Value = 1;
+            lblZoomVal.Text = tbarZoom.Value.ToString();
+
         }
 
         public void frmMain_Load(object sender, EventArgs e)
@@ -73,17 +87,41 @@ namespace bbox_maker
             var inputImageFolder = uiInputImageFolder.Text;
             if((!string.IsNullOrWhiteSpace(inputImageFolder)) && Directory.Exists(uiInputImageFolder.Text))
             {                
-                LoadInputImageFolder(inputImageFolder);
+                //LoadInputImageFolder(inputImageFolder);
 
-                LoadLabels(labelpath);
+                loadImageToPictureBox(inputImageFolder);
+
+                //LoadLabels(labelpath);
+
+                // load file
 
                 PopulateDataGridView();
+
             }
             else
             {
                 uiInputImageFolder.Text = FileBrowser.Instance.GetRecentDirectory(INPUT_IMAGE_FOLDER_TITLE);
             }
         }
+
+        Image ZoomPicture(Image img, Size size)
+        {
+            //int nW = Convert.ToInt32(img.Width *(1/50) *size.Width);
+            //int nH = Convert.ToInt32(img.Height *(1/50) *size.Height);
+
+            var w = Convert.ToDouble(size.Width * 0.02);
+            var h = Convert.ToDouble(size.Height * 0.02); 
+
+            int nW = Convert.ToInt32(img.Width * w);
+            int nH = Convert.ToInt32(img.Height* h );
+
+            Bitmap bm = new Bitmap(img, nW, nH);
+            Graphics gpu = Graphics.FromImage(bm);
+            gpu.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+            return bm;
+
+        }
+
 
         public Rectangle GetDraggedRect()
         {
@@ -100,20 +138,44 @@ namespace bbox_maker
 
         public void pictureBox1_Paint(object sender, PaintEventArgs e)
         {
-            
+
+            if (r != null && _mouseIsDown)
+            {
+                if (_mouseIsDown)
+                {
+                    Rectangle r = GetDraggedRect();
+
+                    e.Graphics.DrawRectangle(Pens.Red, r);
+
+                    //UpdatePictureBoxWithRectangle(pictureBox1, r);
+                }
+                
+
+                //e.Graphics.DrawRectangle(Pens.Red, _loadedDefects[_imageIndex].rect);
+
+                //if ((_loadedDefects != null) && (_imageIndex < _loadedDefects.Count()))
+                //{
+                //    if (_mouseIsDown)
+                //    {
+                //        _loadedDefects[_imageIndex].rect = GetDraggedRect();
+                //    }
+                //    e.Graphics.DrawRectangle(Pens.Red, _loadedDefects[_imageIndex].rect);
+                //}
+            }
+
             // need to reset if button is changed.
 
-            if (r != null)
-            {
-                if ((_loadedDefects != null) && (_imageIndex < _loadedDefects.Count()))
-                {
-                    if (_mouseIsDown)
-                    {
-                        _loadedDefects[_imageIndex].rect = GetDraggedRect();
-                    }
-                    e.Graphics.DrawRectangle(Pens.Red, _loadedDefects[_imageIndex].rect);
-                }
-            }
+            //if (r != null)
+            //{
+            //    if ((_loadedDefects != null) && (_imageIndex < _loadedDefects.Count()))
+            //    {
+            //        if (_mouseIsDown)
+            //        {
+            //            _loadedDefects[_imageIndex].rect = GetDraggedRect();
+            //        }
+            //        e.Graphics.DrawRectangle(Pens.Red, _loadedDefects[_imageIndex].rect);
+            //    }
+            //}
         }
 
         public void pictureBox1_MouseDown(object sender, MouseEventArgs e)
@@ -137,42 +199,127 @@ namespace bbox_maker
                 //_loadedDefects[_imageIndex].rect = r;
 
                 //updateLabels(_imageIndex);
-                Refresh();
+                //Refresh();
+
+                //DrawRectangle(Pens.Red, r);
 
                 DialogResult result = MessageBox.Show("Adding a Defect?", "Add defect?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 if (result == DialogResult.Yes)
                 {
                     // User clicked Yes
-                    frmAddDefect form = new frmAddDefect();
+                    //MessageBox.Show("r is: " + r.ToString());
+                    
+                    Defect newDefect = new Defect();
+
+                    newDefect.index = totalDefects +1;
+                    newDefect.datetime = DateTime.Now.ToString();
+                    newDefect.image_name = image_path;
+                    newDefect.h = pictureBox1.Image.Height;
+                    newDefect.w = pictureBox1.Image.Width;
+                    newDefect.inspector = txbxInspector.Text;
+                    newDefect.defect = "tba - sept 25";
+                    newDefect.location_x = r.X;
+                    newDefect.location_y = r.Y;
+                    newDefect.def_h = r.Height;
+                    newDefect.def_w = r.Width;
+                    newDefect.notes = "tba - sept 25";
+                    newDefect.r = r;
+
+
+                    frmAddDefect form = new frmAddDefect(newDefect, table);
+                    // inject formclose event handler
+
+                    form.FormClosed += new FormClosedEventHandler(frmAddDefect_FormClosed);
+
                     form.Show();
                 }
                 else if (result == DialogResult.No)
                 {
                     // User clicked No
+                    //pictureBox1.Invalidate();
                 }
             }
         }
 
-
-        private void PopulateDataGridView()
+        private void frmAddDefect_FormClosed(object sender, FormClosedEventArgs e)
         {
-            // Create a DataTable with 4 columns
-            DataTable table = new DataTable();
-            table.Columns.Add("x", typeof(int));
-            table.Columns.Add("y", typeof(int));
-            table.Columns.Add("z", typeof(int));
+            PopulateDataGridView(); //refresh datatable
+        }
 
-            // Add 4 rows of random data
-            Random random = new Random();
-            for (int i = 0; i < 4; i++)
+
+        public void PopulateDataGridView()
+        {
+            DataTable table = new DataTable(); // clear out old stuff
+
+            // Create a DataTable with 4 columns
+            //DataTable table = new DataTable();
+            table.Columns.Add("idx", typeof(int));
+            table.Columns.Add("datetime", typeof(string));
+            table.Columns.Add("image_name", typeof(string));
+            table.Columns.Add("h", typeof(int));
+            table.Columns.Add("w", typeof(int));
+            table.Columns.Add("inspector", typeof(string));
+            table.Columns.Add("defect", typeof(string));
+            table.Columns.Add("loc_x", typeof(int));
+            table.Columns.Add("loc_y", typeof(int));
+            table.Columns.Add("def_h", typeof(int));
+            table.Columns.Add("def_w", typeof(int));
+
+            table.Columns.Add("notes", typeof(string));
+
+
+            string[] defectlogs = File.ReadAllLines(defectslog_path);
+
+            // Add data
+
+            for (int i = 1; i < defectlogs.Length; i++)
             {
-                table.Rows.Add(random.Next(100), random.Next(100), random.Next(100));
+
+                string[] x = defectlogs[i].Split(',');
+
+                int index = i;
+                string datetime = x[1];
+                string image_name = x[2];
+                int h = Convert.ToInt32(x[3]);
+                int w = Convert.ToInt32(x[4]);
+                string inspector = x[5];
+                string defect = x[6];
+                int loc_x = Convert.ToInt32(x[7]);
+                int loc_y = Convert.ToInt32(x[8]);
+                int def_h = Convert.ToInt32(x[9]);
+                int def_w = Convert.ToInt32(x[10]);
+                string notes = x[11];
+
+                // add everything to the table
+
+                table.Rows.Add(index, datetime, image_name, h, w, inspector, defect, loc_x, loc_y, def_h, def_w, notes);
+
+                // update image with rects
+
+                //Rectangle r_n = new Rectangle(loc_x, loc_y, def_h, def_w);
+                Rectangle r_n = new Rectangle(loc_x, loc_y, def_w, def_h);
+
+                UpdatePictureBoxWithRectangle(pictureBox1, r_n);
+
+                totalDefects = i;
+
             }
 
             // Bind the DataTable to the DataGridView
             dataGridView1.DataSource = table;
         }
+        
 
+        private void UpdatePictureBoxWithRectangle(PictureBox pictureBox, Rectangle rectangle)
+        {
+            // update picturebox with rect
+            using (Graphics graphics = pictureBox.CreateGraphics())
+            {
+                graphics.DrawRectangle(Pens.Red, rectangle);
+            }
+
+            pictureBox.BringToFront();
+        }
 
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
@@ -299,13 +446,83 @@ namespace bbox_maker
                 }
 
                 var thumbnailFolder = Path.GetDirectoryName(_loadedDefects[0].imagePath);
-                MergeDataset(thumbnailFolder);
-                RunTraining();
+                //MergeDataset(thumbnailFolder);
+                //RunTraining();
             }
             catch(Exception ex)
             {
                 MessageBox.Show(ex.Message, "Error");
             }
+        }
+
+        public void loadImageToPictureBox(string inputImageFolder)
+        {
+            r = Rectangle.Empty;
+            pictureBox1.Image = null;
+
+            // load folder of images, this will be automatic when user hits retrain
+            // make objects
+
+            List<Defect> defectList = new List<Defect>();
+            List<string> labels = new List<string>();
+
+            int count = 0;
+            foreach (string imageFileName in Directory.GetFiles(inputImageFolder, "*.jpg"))
+            {
+                string name = Path.GetFileNameWithoutExtension(imageFileName);
+                string[] x = name.Split(' ');
+
+                if (x.Length == 1) // do not add larger scans...
+                {
+                    string label = x[x.Length - 1];
+
+                    System.Drawing.Image img = System.Drawing.Image.FromFile(imageFileName);
+
+                    orgImg = img;
+
+                    int w = img.Width;
+                    int h = img.Height;
+
+                    Defect def = new Defect();
+
+                    def.imagePath = imageFileName;
+                    def.rect = Rectangle.Empty;
+                    def.label = label;
+                    def.height = h;
+                    def.width = w;
+                    defectList.Add(def);
+                    count++;
+
+                    labels.Add(label);
+                }
+
+            }
+
+            // enable toggle buttons
+            btnPrevious.Enabled = true;
+            btnNext.Enabled = true;
+
+            // populate instance defect list
+            _loadedDefects = defectList;
+            _imageIndex = 0;
+
+            // update combobox with unique defect classes
+            //HashSet<string> uniqueLabels = new HashSet<string>(labels);
+            //cmbxLabel.Items.AddRange(uniqueLabels.ToArray());
+
+            // show first defect
+            if (_loadedDefects.Count() > 0) 
+            {
+                pictureBox1.Image = new Bitmap(_loadedDefects[_imageIndex].imagePath);
+                image_path = _loadedDefects[_imageIndex].imagePath;
+                lblImagePath.Text = image_path;
+            }
+            //updateLabels(_imageIndex);
+
+            
+
+            Refresh();
+
         }
 
 
@@ -317,7 +534,7 @@ namespace bbox_maker
             // load folder of images, this will be automatic when user hits retrain
             // make objects
 
-            List<Defects> defectList = new List<Defects>();
+            List<Defect> defectList = new List<Defect>();
             List<string> labels = new List<string>();
 
             int count = 0;
@@ -335,7 +552,7 @@ namespace bbox_maker
                     int w = img.Width;
                     int h = img.Height;
 
-                    Defects def = new Defects();
+                    Defect def = new Defect();
 
                     def.imagePath = imageFileName;
                     def.rect = Rectangle.Empty;
@@ -366,17 +583,110 @@ namespace bbox_maker
             if (_loadedDefects.Count() > 0) { pictureBox1.Image = new Bitmap(_loadedDefects[_imageIndex].imagePath); }
             updateLabels(_imageIndex);
 
-            Refresh();
+            //Refresh();
         }
 
-        void LoadInputImageFolder(string inputImageFolder)
+        //protected override void OnMouseWheel(MouseEventArgs e)
+        //{
+
+        //    int delta = e.Delta;
+        //    int x = e.X;
+        //    int y = e.Y;
+
+        //    int zs = 50;//10
+            
+
+        //    if (e.Delta != 0)
+        //    {
+
+        //        if (delta > 0)
+        //        {
+        //            // Zoom in
+        //            pictureBox1.Width += zs;
+        //            pictureBox1.Height += zs;
+        //            return;
+        //        }
+        //        else if (delta < 0)
+        //        {
+        //            // Zoom out
+        //            pictureBox1.Width -= zs;
+        //            pictureBox1.Height -= zs;
+        //            return;
+        //        }
+
+        //        //if (e.Delta <= 0)
+        //        //{
+        //        //    //set minimum size to zoom
+        //        //    if (pictureBox1.Width < 50)
+        //        //        // lbl_Zoom.Text = pictureBox1.Image.Size; 
+        //        //        return;
+        //        //}
+        //        //else
+        //        //{
+        //        //    //set maximum size to zoom
+        //        //    if (pictureBox1.Width > 1000)
+        //        //        return;
+        //        //}
+        //        pictureBox1.Width += Convert.ToInt32(pictureBox1.Width * e.Delta / 1000);
+        //        pictureBox1.Height += Convert.ToInt32(pictureBox1.Height * e.Delta / 1000);
+        //    }
+        //}
+
+        //public void pictureBox1_MouseWheel(object sender, MouseEventArgs e)
+        //{
+        //int delta = e.Delta;
+        //int x = e.X;
+        //int y = e.Y;
+
+        //    if (delta > 0)
+        //    {
+        //        // Zoom in
+        //        pictureBox1.Width += 10;
+        //        pictureBox1.Height += 10;
+        //    }
+        //    else if (delta< 0)
+        //    {
+        //        // Zoom out
+        //        pictureBox1.Width -= 10;
+        //        pictureBox1.Height -= 10;
+        //    }
+
+//    // Center the zoom around the mouse cursor
+//    int newX = x - (int)(x * 0.1);
+//    int newY = y - (int)(y * 0.1);
+//    pictureBox1.Location = new Point(pictureBox1.Location.X + newX, pictureBox1.Location.Y + newY);
+//}
+
+// zooming feature, may not work...
+//protected override void OnMouseWheel(MouseEventArgs e)
+//{
+//    if (e.Delta != 0)
+//    {
+//        if (e.Delta <= 0)
+//        {
+//            //set minimum size to zoom
+//            if (pictureBox1.Width < 50)
+//                // lbl_Zoom.Text = pictureBox1.Image.Size; 
+//                return;
+//        }
+//        else
+//        {
+//            //set maximum size to zoom
+//            if (pictureBox1.Width > 1000)
+//                return;
+//        }
+//        pictureBox1.Width += Convert.ToInt32(pictureBox1.Width * e.Delta / 1000);
+//        pictureBox1.Height += Convert.ToInt32(pictureBox1.Height * e.Delta / 1000);
+//    }
+//}
+
+void LoadInputImageFolder(string inputImageFolder)
         {
             r = Rectangle.Empty;
             btnLoadFolder.Enabled = true;
             uiInputImageFolder.Enabled = false;
-            btnMakeXML.Enabled = true;
-            cmbxLabel.Enabled = true;
-            loadDefects(inputImageFolder);
+            //btnMakeXML.Enabled = true;
+            //cmbxLabel.Enabled = true;
         }
 
         public void btnLoadFolder_Click(object sender, EventArgs e)
@@ -396,80 +706,81 @@ namespace bbox_maker
             if(i < _loadedDefects.Count())
             {
                 lblImagePath.Text = _loadedDefects[i].imagePath;
+                image_path = lblImagePath.Text;
                 lblCurrentPosition.Text = (i + 1).ToString();
-                lblBboxVals.Text = _loadedDefects[i].rect.ToString();
-                lblHeight.Text = _loadedDefects[i].height.ToString();
-                lblWidth.Text = _loadedDefects[i].width.ToString();
-                lblTotalCount.Text = _loadedDefects.Count.ToString();
-                lblHasBoundingBox.Text = _loadedDefects[i].isNeedsBox.ToString();
-                cmbxLabel.Text = _loadedDefects[i].label.ToString();
+                //lblBboxVals.Text = _loadedDefects[i].rect.ToString();
+                //lblHeight.Text = _loadedDefects[i].height.ToString();
+                //lblWidth.Text = _loadedDefects[i].width.ToString();
+                //lblTotalCount.Text = _loadedDefects.Count.ToString();
+                //lblHasBoundingBox.Text = _loadedDefects[i].isNeedsBox.ToString();
+                //cmbxLabel.Text = _loadedDefects[i].label.ToString();
             }
         }
 
         public void btnPrevious_Click(object sender, EventArgs e)
         {
-            if (_imageIndex <= 0) { return; }
+            //if (_imageIndex <= 0) { return; }
 
-            //clear previous image and data
-            r = Rectangle.Empty;
-            pictureBox1.Invalidate();
-            Graphics g = pictureBox1.CreateGraphics();
-            g.Clear(pictureBox1.BackColor);
-            pictureBox1.Update();
+            ////clear previous image and data
+            //r = Rectangle.Empty;
+            //pictureBox1.Invalidate();
+            //Graphics g = pictureBox1.CreateGraphics();
+            //g.Clear(pictureBox1.BackColor);
+            //pictureBox1.Update();
 
-            _imageIndex--;
+            //_imageIndex--;
 
-            Defects newDef = _loadedDefects[_imageIndex];
-            string pathy = newDef.imagePath;
+            //Defect newDef = _loadedDefects[_imageIndex];
+            //string pathy = newDef.imagePath;
 
-            if (newDef.isNeedsBox)
-            {
-                pictureBox1.Image = new Bitmap(pathy);
-                updateLabels(_imageIndex);
-                Refresh();
-            }
+            //if (newDef.isNeedsBox)
+            //{
+            //    pictureBox1.Image = new Bitmap(pathy);
+            //    updateLabels(_imageIndex);
+            //    Refresh();
+            //}
 
-            else
-            {
-                g = Graphics.FromImage(pictureBox1.Image);
-                pictureBox1.Image = new Bitmap(pathy);
-                g.DrawRectangle(Pens.Red, newDef.rect);
-                updateLabels(_imageIndex);
-                Refresh();
-            }
+            //else
+            //{
+            //    g = Graphics.FromImage(pictureBox1.Image);
+            //    pictureBox1.Image = new Bitmap(pathy);
+            //    g.DrawRectangle(Pens.Red, newDef.rect);
+            //    updateLabels(_imageIndex);
+            //    Refresh();
+            //}
         }
 
         public void btnNext_Click(object sender, EventArgs e)
         {
-            if (_imageIndex >= (_loadedDefects.Count - 1)) { return; }
+            //if (_imageIndex >= (_loadedDefects.Count - 1)) { return; }
 
-            //clear previous image and data
-            r = Rectangle.Empty;
-            pictureBox1.Invalidate();
-            Graphics g = pictureBox1.CreateGraphics();
-            g.Clear(pictureBox1.BackColor);
-            pictureBox1.Update();
+            ////clear previous image and data
+            //r = Rectangle.Empty;
+            //pictureBox1.Invalidate();
+            //Graphics g = pictureBox1.CreateGraphics();
+            //g.Clear(pictureBox1.BackColor);
+            //pictureBox1.Update();
 
-            _imageIndex++;
+            //_imageIndex++;
 
-            Defects newDef = _loadedDefects[_imageIndex];
-            string pathy = newDef.imagePath;
+            //Defect newDef = _loadedDefects[_imageIndex];
+            //string pathy = newDef.imagePath;
 
-            if (newDef.isNeedsBox)
-            {
-                pictureBox1.Image = new Bitmap(pathy);
-                updateLabels(_imageIndex);
-                Refresh();
-            }
+            //if (newDef.isNeedsBox)
+            //{
+            //    pictureBox1.Image = new Bitmap(pathy);
+            //    updateLabels(_imageIndex);
+            //    Refresh();
+            //}
 
-            else
-            {
-                g = Graphics.FromImage(pictureBox1.Image);
-                pictureBox1.Image = new Bitmap(pathy);
-                g.DrawRectangle(Pens.Red, newDef.rect);
-                updateLabels(_imageIndex);
-                Refresh();
-            }
+            //else
+            //{
+            //    g = Graphics.FromImage(pictureBox1.Image);
+            //    pictureBox1.Image = new Bitmap(pathy);
+            //    g.DrawRectangle(Pens.Red, newDef.rect);
+            //    updateLabels(_imageIndex);
+            //    Refresh();
+            //}
         }
 
         private void uiBrowse_Click(object sender, EventArgs e)
@@ -481,17 +792,32 @@ namespace bbox_maker
             }
         }
 
-        void MergeDataset(string thumbnailImageFolder)
+        //void MergeDataset(string thumbnailImageFolder)
+        //{
+        //    var args = $"-m dataset.maintenance --merge --new-data-path=\"{thumbnailImageFolder}\"";
+        //    ExternalProgram.Run(mlPaths.pythonEnvPath, args, mlPaths.mlDIR, null, l => Debug.WriteLine(l));
+        //}
+
+        //void RunTraining()
+        //{
+        //    var args = $"train.py";
+        //    ExternalProgram.RunInWindow(mlPaths.pythonEnvPath, args, mlPaths.mlDIR);
+        //    MessageBox.Show("models successfully retrained.");
+        //}
+
+        public void txbxInspector_TextChanged(object sender, EventArgs e)
         {
-            var args = $"-m dataset.maintenance --merge --new-data-path=\"{thumbnailImageFolder}\"";
-            //ExternalProgram.Run(mlPaths.pythonEnvPath, args, mlPaths.mlDIR, null, l => Debug.WriteLine(l));
+            Inspector = txbxInspector.Text;
         }
 
-        void RunTraining()
+        private void tbarZoom_Scroll(object sender, EventArgs e)
         {
-            var args = $"train.py";
-            //ExternalProgram.RunInWindow(mlPaths.pythonEnvPath, args, mlPaths.mlDIR);
-            MessageBox.Show("models successfully retrained.");
+            if (tbarZoom.Value != 0)
+            {
+                pictureBox1.Image = null;
+                pictureBox1.Image = ZoomPicture(orgImg, new Size(tbarZoom.Value, tbarZoom.Value));
+                lblZoomVal.Text = (tbarZoom.Value).ToString();
+            }
         }
     }
 }
