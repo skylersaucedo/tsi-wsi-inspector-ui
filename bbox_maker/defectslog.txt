@@ -9,3 +9,8 @@ index, datetime, image_name, h, w, inspector, defect, loc_x, loc_y, def_h, def_w
 8,9/25/2023 3:43:58 PM,C:\Users\sauce\OneDrive\Desktop\make_pano\panos\125_hori_pano_no_stitch.jpg,3463,16920,M. Salamanca,scratch,16888,3429,30,20,
 9,9/25/2023 3:48:15 PM,C:\Users\sauce\OneDrive\Desktop\make_pano\panos\125_hori_pano_no_stitch.jpg,3684,7500,M. Salamanca,scratch,3199,34,137,167,
 10,9/25/2023 3:48:25 PM,C:\Users\sauce\OneDrive\Desktop\make_pano\panos\125_hori_pano_no_stitch.jpg,3684,7500,M. Salamanca,scratch,3194,17,123,164,
+11,9/25/2023 7:23:00 PM,C:\Users\sauce\OneDrive\Desktop\make_pano\panos\125_hori_pano_no_stitch.jpg,442,2160,M. Salamanca,scratch,424,143,54,38,
+12,9/25/2023 7:23:04 PM,C:\Users\sauce\OneDrive\Desktop\make_pano\panos\125_hori_pano_no_stitch.jpg,442,2160,M. Salamanca,scratch,485,219,62,39,
+13,9/25/2023 7:23:08 PM,C:\Users\sauce\OneDrive\Desktop\make_pano\panos\125_hori_pano_no_stitch.jpg,442,2160,M. Salamanca,scratch,54,297,26,34,
+14,9/25/2023 7:23:12 PM,C:\Users\sauce\OneDrive\Desktop\make_pano\panos\125_hori_pano_no_stitch.jpg,442,2160,M. Salamanca,scratch,845,18,293,224,
+15,9/25/2023 7:29:51 PM,C:\Users\sauce\OneDrive\Desktop\make_pano\panos\125_hori_pano_no_stitch.jpg,442,2160,M. Salamanca,scratch,668,176,36,25,

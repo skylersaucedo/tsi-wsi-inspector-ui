@@ -36,36 +36,35 @@ namespace inspectionUI
         public int totalDefects;
         Image orgImg;
 
-        public void LoadLabels(string path)
-        {
-            //
-            List<string> lines = new List<string>();
+        //public void LoadLabels(string path)
+        //{
+        //    List<string> lines = new List<string>();
 
-            try
-            {
-                using (StreamReader sr = new StreamReader(path))
-                {
-                    string line;
-                    while ((line = sr.ReadLine()) != null)
-                    {
-                        lines.Add(line);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("The file could not be read:");
-                Console.WriteLine(e.Message);
-            }
+        //    try
+        //    {
+        //        using (StreamReader sr = new StreamReader(path))
+        //        {
+        //            string line;
+        //            while ((line = sr.ReadLine()) != null)
+        //            {
+        //                lines.Add(line);
+        //            }
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Console.WriteLine("The file could not be read:");
+        //        Console.WriteLine(e.Message);
+        //    }
 
-            // populate combobox
+        //    // populate combobox
 
-            foreach (string line in lines)
-            {
-                //cmbxLabel.Items.Add(line);
-            }
+        //    foreach (string line in lines)
+        //    {
+        //        //cmbxLabel.Items.Add(line);
+        //    }
 
-        }
+        //}
 
         public frmMain(string inputImageFolder)
         {
@@ -106,14 +105,11 @@ namespace inspectionUI
 
         Image ZoomPicture(Image img, Size size)
         {
-            //int nW = Convert.ToInt32(img.Width *(1/50) *size.Width);
-            //int nH = Convert.ToInt32(img.Height *(1/50) *size.Height);
-
             var w = Convert.ToDouble(size.Width * 0.02);
             var h = Convert.ToDouble(size.Height * 0.02); 
 
             int nW = Convert.ToInt32(img.Width * w);
-            int nH = Convert.ToInt32(img.Height* h );
+            int nH = Convert.ToInt32(img.Height * h);
 
             Bitmap bm = new Bitmap(img, nW, nH);
             Graphics gpu = Graphics.FromImage(bm);
@@ -244,8 +240,49 @@ namespace inspectionUI
         private void frmAddDefect_FormClosed(object sender, FormClosedEventArgs e)
         {
             PopulateDataGridView(); //refresh datatable
+            addDefects2img();
         }
 
+
+        public void addDefects2img()
+        {
+            string[] defectlogs = File.ReadAllLines(defectslog_path);
+
+            // Add data
+
+            for (int i = 1; i < defectlogs.Length; i++)
+            {
+
+                string[] x = defectlogs[i].Split(',');
+
+                int index = i;
+                string datetime = x[1];
+                string image_name = x[2];
+                int h = Convert.ToInt32(x[3]);
+                int w = Convert.ToInt32(x[4]);
+                string inspector = x[5];
+                string defect = x[6];
+                int loc_x = Convert.ToInt32(x[7]);
+                int loc_y = Convert.ToInt32(x[8]);
+                int def_h = Convert.ToInt32(x[9]);
+                int def_w = Convert.ToInt32(x[10]);
+                string notes = x[11];
+
+                // add everything to the table
+
+                //table.Rows.Add(index, datetime, image_name, h, w, inspector, defect, loc_x, loc_y, def_h, def_w, notes);
+
+                // update image with rects
+
+                //Rectangle r_n = new Rectangle(loc_x, loc_y, def_h, def_w);
+                Rectangle r_n = new Rectangle(loc_x, loc_y, def_w, def_h);
+
+                UpdatePictureBoxWithRectangle(pictureBox1, r_n, Pens.Red);
+
+                totalDefects = i;
+
+            }
+        }
 
         public void PopulateDataGridView()
         {
@@ -299,7 +336,7 @@ namespace inspectionUI
                 //Rectangle r_n = new Rectangle(loc_x, loc_y, def_h, def_w);
                 Rectangle r_n = new Rectangle(loc_x, loc_y, def_w, def_h);
 
-                UpdatePictureBoxWithRectangle(pictureBox1, r_n);
+                UpdatePictureBoxWithRectangle(pictureBox1, r_n, Pens.Red);
 
                 totalDefects = i;
 
@@ -310,15 +347,16 @@ namespace inspectionUI
         }
         
 
-        private void UpdatePictureBoxWithRectangle(PictureBox pictureBox, Rectangle rectangle)
+        private void UpdatePictureBoxWithRectangle(PictureBox pictureBox, Rectangle rectangle, Pen color)
         {
             // update picturebox with rect
             using (Graphics graphics = pictureBox.CreateGraphics())
             {
-                graphics.DrawRectangle(Pens.Red, rectangle);
+                graphics.DrawRectangle(color, rectangle);
             }
 
             pictureBox.BringToFront();
+            pictureBox.Update();
         }
 
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
@@ -815,8 +853,33 @@ void LoadInputImageFolder(string inputImageFolder)
             if (tbarZoom.Value != 0)
             {
                 pictureBox1.Image = null;
-                pictureBox1.Image = ZoomPicture(orgImg, new Size(tbarZoom.Value, tbarZoom.Value));
-                lblZoomVal.Text = (tbarZoom.Value).ToString();
+
+                int s = tbarZoom.Value; // 1/50
+                pictureBox1.Image = ZoomPicture(orgImg, new Size(s, s));
+                lblZoomVal.Text = (s).ToString();
+                addDefects2img();
+            }
+        }
+
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+           
+        }
+
+        private void dataGridView1_SelectionChanged(object sender, EventArgs e)
+        {
+            if (dataGridView1.SelectedRows.Count > 0)
+            {
+                int i = dataGridView1.SelectedRows[0].Index + 1;
+                MessageBox.Show("You selected row: " + i.ToString());
+
+                // Get the values from the selected row
+                //string value1 = dataGridView1.SelectedRows[i-1].Cells[0].Value.ToString();
+                //string value2 = dataGridView1.SelectedRows[i-1].Cells[1].Value.ToString();
+
+                var whatmE = 3;
+
+                //UpdatePictureBoxWithRectangle(pictureBox1, r_n, Pens.Yellow);
             }
         }
     }
