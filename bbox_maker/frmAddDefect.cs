@@ -151,7 +151,18 @@ namespace inspectionUI
                 
                 string[] records = File.ReadAllLines(defectslog_path);
 
-                string header = records[0];
+                if (records.Length == 0)
+                {
+                    // make sure header is in .csv file or you're going to get an out of index error!
+                    records[0] = "";
+                    //add header
+                    string header = "index, datetime, image_name, h, w, inspector, defect, loc_x, loc_y, def_h, def_w, notes;";
+                    records[0] = header;
+               
+                }
+
+                //string header = records[0];
+
 
                 //string newrecord = "index, datetime, image_name, h, w, inspector, defect, loc_x, loc_y, def_h, def_w, notes;"; //add new record here
 

@@ -15,12 +15,19 @@ namespace inspectionUI
 
     public partial class frmMain : Form
     {
-        const string INPUT_IMAGE_FOLDER_TITLE = "Input image";
+        //const string INPUT_IMAGE_FOLDER_TITLE = "Input image";
         public string image_path;
         public string labelpath = @"C:\Users\sauce\OneDrive\Desktop\inspectionUI-master\inspectionUI\labels.txt";
         public string defectslog_path = @"C:\Users\sauce\OneDrive\Desktop\bbox_maker-master\bbox_maker\defectslog.txt";
         Point _mousePositionDragStart { get; set; }
         Point _mousePositionDragged { get; set; }
+        public int imageIndex { get; set; }
+
+        public int totalImages {get; set;}
+        public int h { get; set; }
+        public int w { get; set; }
+
+        public double s { get; set; } //zoom factor
 
         bool _mouseIsDown = false;
 
@@ -30,11 +37,13 @@ namespace inspectionUI
 
         List<Defect> _loadedDefects;
 
+        List<String> imagepaths;
+
         int _imageIndex { get; set; }
 
         public DataTable table;
         public int totalDefects;
-        Image orgImg;
+        Image originalImage;
 
         //public void LoadLabels(string path)
         //{
@@ -70,21 +79,21 @@ namespace inspectionUI
         {
             inputImageFolder = "C:\\Users\\sauce\\OneDrive\\Desktop\\make_pano\\panos";
             InitializeComponent();
-            uiInputImageFolder.Text = inputImageFolder;
+            txbxInputImageFolder.Text = inputImageFolder;
 
             //pictureBox1.SetStyle(ControlStyles.Selectable, true);
             Inspector = txbxInspector.Text;
 
             table = new DataTable();
-            tbarZoom.Value = 1;
-            lblZoomVal.Text = tbarZoom.Value.ToString();
+            //tbarZoom.Value = 1;
+            //lblZoomVal.Text = tbarZoom.Value.ToString();
 
         }
 
         public void frmMain_Load(object sender, EventArgs e)
         {
-            var inputImageFolder = uiInputImageFolder.Text;
-            if((!string.IsNullOrWhiteSpace(inputImageFolder)) && Directory.Exists(uiInputImageFolder.Text))
+            var inputImageFolder = txbxInputImageFolder.Text;
+            if((!string.IsNullOrWhiteSpace(inputImageFolder)) && Directory.Exists(txbxInputImageFolder.Text))
             {                
                 //LoadInputImageFolder(inputImageFolder);
 
@@ -96,22 +105,20 @@ namespace inspectionUI
 
                 PopulateDataGridView();
 
+                addDefects2img();
+
+                s = 1; //set original zoom factor to unity
+
             }
             else
             {
-                uiInputImageFolder.Text = FileBrowser.Instance.GetRecentDirectory(INPUT_IMAGE_FOLDER_TITLE);
+                //uiInputImageFolder.Text = FileBrowser.Instance.GetRecentDirectory(INPUT_IMAGE_FOLDER_TITLE);
             }
         }
 
-        Image ZoomPicture(Image img, Size size)
+        Image ZoomPicture(Image img, Size s)
         {
-            var w = Convert.ToDouble(size.Width * 0.02);
-            var h = Convert.ToDouble(size.Height * 0.02); 
-
-            int nW = Convert.ToInt32(img.Width * w);
-            int nH = Convert.ToInt32(img.Height * h);
-
-            Bitmap bm = new Bitmap(img, nW, nH);
+            Bitmap bm = new Bitmap(img, s.Width, s.Height);
             Graphics gpu = Graphics.FromImage(bm);
             gpu.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
             return bm;
@@ -199,6 +206,9 @@ namespace inspectionUI
 
                 //DrawRectangle(Pens.Red, r);
 
+                MessageBox.Show("r is: " + r.ToString());
+                MessageBox.Show("img, w, h: " + w.ToString() + " " + h.ToString());
+
                 DialogResult result = MessageBox.Show("Adding a Defect?", "Add defect?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 if (result == DialogResult.Yes)
                 {
@@ -209,15 +219,18 @@ namespace inspectionUI
 
                     newDefect.index = totalDefects +1;
                     newDefect.datetime = DateTime.Now.ToString();
-                    newDefect.image_name = image_path;
-                    newDefect.h = pictureBox1.Image.Height;
-                    newDefect.w = pictureBox1.Image.Width;
+                    newDefect.image_name = imagepaths[imageIndex];
+                    newDefect.h = h;
+                    newDefect.w = w;
                     newDefect.inspector = txbxInspector.Text;
                     newDefect.defect = "tba - sept 25";
-                    newDefect.location_x = r.X;
-                    newDefect.location_y = r.Y;
-                    newDefect.def_h = r.Height;
-                    newDefect.def_w = r.Width;
+                    
+                    // account for zoom in/out factor
+
+                    newDefect.location_x = Convert.ToInt32(r.X * (1 / s));
+                    newDefect.location_y = Convert.ToInt32(r.Y * (1 / s));
+                    newDefect.def_h = Convert.ToInt32(r.Height * (1 / s));
+                    newDefect.def_w = Convert.ToInt32(r.Width * (1 / s));
                     newDefect.notes = "tba - sept 25";
                     newDefect.r = r;
 
@@ -246,6 +259,8 @@ namespace inspectionUI
 
         public void addDefects2img()
         {
+            // add scaling factor here eventually.
+
             string[] defectlogs = File.ReadAllLines(defectslog_path);
 
             // Add data
@@ -277,7 +292,7 @@ namespace inspectionUI
                 //Rectangle r_n = new Rectangle(loc_x, loc_y, def_h, def_w);
                 Rectangle r_n = new Rectangle(loc_x, loc_y, def_w, def_h);
 
-                UpdatePictureBoxWithRectangle(pictureBox1, r_n, Pens.Red);
+                UpdatePictureBoxWithRectangle(pictureBox1, r_n, Color.Red, 2);
 
                 totalDefects = i;
 
@@ -290,7 +305,7 @@ namespace inspectionUI
 
             // Create a DataTable with 4 columns
             //DataTable table = new DataTable();
-            table.Columns.Add("idx", typeof(int));
+            table.Columns.Add("index", typeof(int));
             table.Columns.Add("datetime", typeof(string));
             table.Columns.Add("image_name", typeof(string));
             table.Columns.Add("h", typeof(int));
@@ -309,50 +324,58 @@ namespace inspectionUI
 
             // Add data
 
-            for (int i = 1; i < defectlogs.Length; i++)
+            if (defectlogs.Length > 0)
             {
+                for (int i = 1; i < defectlogs.Length; i++)
+                {
 
-                string[] x = defectlogs[i].Split(',');
+                    string[] x = defectlogs[i].Split(',');
 
-                int index = i;
-                string datetime = x[1];
-                string image_name = x[2];
-                int h = Convert.ToInt32(x[3]);
-                int w = Convert.ToInt32(x[4]);
-                string inspector = x[5];
-                string defect = x[6];
-                int loc_x = Convert.ToInt32(x[7]);
-                int loc_y = Convert.ToInt32(x[8]);
-                int def_h = Convert.ToInt32(x[9]);
-                int def_w = Convert.ToInt32(x[10]);
-                string notes = x[11];
+                    int index = i;
+                    string datetime = x[1];
+                    string image_name = x[2];
+                    int h = Convert.ToInt32(x[3]);
+                    int w = Convert.ToInt32(x[4]);
+                    string inspector = x[5];
+                    string defect = x[6];
+                    int loc_x = Convert.ToInt32(x[7]);
+                    int loc_y = Convert.ToInt32(x[8]);
+                    int def_h = Convert.ToInt32(x[9]);
+                    int def_w = Convert.ToInt32(x[10]);
+                    string notes = x[11];
 
-                // add everything to the table
+                    // add everything to the table
 
-                table.Rows.Add(index, datetime, image_name, h, w, inspector, defect, loc_x, loc_y, def_h, def_w, notes);
+                    table.Rows.Add(index, datetime, image_name, h, w, inspector, defect, loc_x, loc_y, def_h, def_w, notes);
 
-                // update image with rects
+                    // update image with rects
 
-                //Rectangle r_n = new Rectangle(loc_x, loc_y, def_h, def_w);
-                Rectangle r_n = new Rectangle(loc_x, loc_y, def_w, def_h);
+                    //Rectangle r_n = new Rectangle(loc_x, loc_y, def_h, def_w);
+                    Rectangle r_n = new Rectangle(loc_x, loc_y, def_w, def_h);
 
-                UpdatePictureBoxWithRectangle(pictureBox1, r_n, Pens.Red);
+                    UpdatePictureBoxWithRectangle(pictureBox1, r_n, Color.Red, 2);
 
-                totalDefects = i;
+                    totalDefects = i;
 
+                }
+
+                // Bind the DataTable to the DataGridView
+                dataGridView1.DataSource = table;
             }
 
-            // Bind the DataTable to the DataGridView
-            dataGridView1.DataSource = table;
+            
         }
         
 
-        private void UpdatePictureBoxWithRectangle(PictureBox pictureBox, Rectangle rectangle, Pen color)
+        private void UpdatePictureBoxWithRectangle(PictureBox pictureBox, Rectangle rectangle, Color color, int thickness)
         {
             // update picturebox with rect
             using (Graphics graphics = pictureBox.CreateGraphics())
             {
-                graphics.DrawRectangle(color, rectangle);
+
+                Pen rectPen = new Pen(color, thickness);
+
+                graphics.DrawRectangle(rectPen, rectangle);
             }
 
             pictureBox.BringToFront();
@@ -498,69 +521,83 @@ namespace inspectionUI
             r = Rectangle.Empty;
             pictureBox1.Image = null;
 
-            // load folder of images, this will be automatic when user hits retrain
-            // make objects
 
-            List<Defect> defectList = new List<Defect>();
-            List<string> labels = new List<string>();
+            imagepaths = new List<string>();
 
             int count = 0;
             foreach (string imageFileName in Directory.GetFiles(inputImageFolder, "*.jpg"))
             {
                 string name = Path.GetFileNameWithoutExtension(imageFileName);
-                string[] x = name.Split(' ');
 
-                if (x.Length == 1) // do not add larger scans...
-                {
-                    string label = x[x.Length - 1];
+                imagepaths.Add(imageFileName);
 
-                    System.Drawing.Image img = System.Drawing.Image.FromFile(imageFileName);
-
-                    orgImg = img;
-
-                    int w = img.Width;
-                    int h = img.Height;
-
-                    Defect def = new Defect();
-
-                    def.imagePath = imageFileName;
-                    def.rect = Rectangle.Empty;
-                    def.label = label;
-                    def.height = h;
-                    def.width = w;
-                    defectList.Add(def);
-                    count++;
-
-                    labels.Add(label);
-                }
+                count++;
 
             }
+
+            imageIndex = 0;
+            totalImages = count;
+
+            originalImage = new Bitmap(imagepaths[imageIndex]);
+
+            pictureBox1.Image = originalImage;
+
+            w = originalImage.Width;
+            h = originalImage.Height;
+
+            lblTotalCount.Text = count.ToString();
+            lblImagePath.Text = imagepaths[imageIndex];
+            lblCurrentPosition.Text = imageIndex.ToString();    
+
+
+            //if (x.Length == 1) 
+            //    {
+            //        string label = x[x.Length - 1];
+
+            //        System.Drawing.Image img = System.Drawing.Image.FromFile(imageFileName);
+
+            //        orgImg = img;
+
+            //        int w = img.Width;
+            //        int h = img.Height;
+
+            //        //Defect def = new Defect();
+
+            //        //def.imagePath = imageFileName;
+            //        //def.rect = Rectangle.Empty;
+            //        //def.label = label;
+            //        //def.height = h;
+            //        //def.width = w;
+            //        //defectList.Add(def);
+            //        //count++;
+
+            //        //labels.Add(label);
+            //    }
+
+            //}
 
             // enable toggle buttons
             btnPrevious.Enabled = true;
             btnNext.Enabled = true;
 
-            // populate instance defect list
-            _loadedDefects = defectList;
-            _imageIndex = 0;
+            //// populate instance defect list
+            //_loadedDefects = defectList;
+            //_imageIndex = 0;
 
-            // update combobox with unique defect classes
-            //HashSet<string> uniqueLabels = new HashSet<string>(labels);
-            //cmbxLabel.Items.AddRange(uniqueLabels.ToArray());
+            //// update combobox with unique defect classes
+            ////HashSet<string> uniqueLabels = new HashSet<string>(labels);
+            ////cmbxLabel.Items.AddRange(uniqueLabels.ToArray());
 
-            // show first defect
-            if (_loadedDefects.Count() > 0) 
-            {
-                pictureBox1.Image = new Bitmap(_loadedDefects[_imageIndex].imagePath);
-                image_path = _loadedDefects[_imageIndex].imagePath;
-                lblImagePath.Text = image_path;
-            }
-            //updateLabels(_imageIndex);
-
-            
+            //// show first defect
+            //if (_loadedDefects.Count() > 0) 
+            //{
+            //    pictureBox1.Image = new Bitmap(_loadedDefects[_imageIndex].imagePath);
+            //    image_path = _loadedDefects[_imageIndex].imagePath;
+            //    lblImagePath.Text = image_path;
+            //}
+            ////updateLabels(_imageIndex);
 
             Refresh();
-
         }
 
 
@@ -619,7 +656,7 @@ namespace inspectionUI
 
             // show first defect
             if (_loadedDefects.Count() > 0) { pictureBox1.Image = new Bitmap(_loadedDefects[_imageIndex].imagePath); }
-            updateLabels(_imageIndex);
+            //updateLabels(_imageIndex);
 
             //Refresh();
         }
@@ -722,20 +759,20 @@ void LoadInputImageFolder(string inputImageFolder)
         {
             r = Rectangle.Empty;
             btnLoadFolder.Enabled = true;
-            uiInputImageFolder.Enabled = false;
+            txbxInputImageFolder.Enabled = false;
             //btnMakeXML.Enabled = true;
             //cmbxLabel.Enabled = true;
         }
 
         public void btnLoadFolder_Click(object sender, EventArgs e)
         {
-            var inputImageFolder = uiInputImageFolder.Text;
-            if (string.IsNullOrWhiteSpace(inputImageFolder) || !Directory.Exists(uiInputImageFolder.Text))
+            var newInputImageFolder = txbxInputImageFolder.Text;
+            if (string.IsNullOrWhiteSpace(newInputImageFolder) || !Directory.Exists(newInputImageFolder))
             {
                 return;
             }
 
-            LoadInputImageFolder(inputImageFolder);            
+            LoadInputImageFolder(newInputImageFolder);            
         }
 
         public void updateLabels(int i)
@@ -757,24 +794,42 @@ void LoadInputImageFolder(string inputImageFolder)
 
         public void btnPrevious_Click(object sender, EventArgs e)
         {
-            //if (_imageIndex <= 0) { return; }
+            if (imageIndex <= 0) { return; }
 
-            ////clear previous image and data
-            //r = Rectangle.Empty;
-            //pictureBox1.Invalidate();
-            //Graphics g = pictureBox1.CreateGraphics();
-            //g.Clear(pictureBox1.BackColor);
-            //pictureBox1.Update();
+            //clear previous image and data
+            r = Rectangle.Empty;
+            pictureBox1.Invalidate();
+            Graphics g = pictureBox1.CreateGraphics();
+            g.Clear(pictureBox1.BackColor);
+            pictureBox1.Update();
 
-            //_imageIndex--;
+            imageIndex--;
 
-            //Defect newDef = _loadedDefects[_imageIndex];
-            //string pathy = newDef.imagePath;
+            //pictureBox1.Image = new Bitmap(imagepaths[imageIndex]);
+
+            originalImage = new Bitmap(imagepaths[imageIndex]);
+
+            pictureBox1.Image = originalImage;
+
+            w = originalImage.Width;
+            h = originalImage.Height;
+
+            lblImagePath.Text = imagepaths[imageIndex];
+            lblCurrentPosition.Text = imageIndex.ToString();
+            //h = pictureBox1.Image.Height;
+            //w = pictureBox1.Image.Width;
+
+            //updateLabels(_imageIndex);
+
+            tbarZoom.Value = 25; // adjust trackbar to center
+            lblZoomVal.Text = "1";
+
+            Refresh();
 
             //if (newDef.isNeedsBox)
             //{
             //    pictureBox1.Image = new Bitmap(pathy);
-            //    updateLabels(_imageIndex);
+            //    //updateLabels(_imageIndex);
             //    Refresh();
             //}
 
@@ -782,27 +837,47 @@ void LoadInputImageFolder(string inputImageFolder)
             //{
             //    g = Graphics.FromImage(pictureBox1.Image);
             //    pictureBox1.Image = new Bitmap(pathy);
-            //    g.DrawRectangle(Pens.Red, newDef.rect);
-            //    updateLabels(_imageIndex);
+            //    //g.DrawRectangle(Pens.Red, newDef.rect);
+            //    //updateLabels(_imageIndex);
             //    Refresh();
             //}
         }
 
         public void btnNext_Click(object sender, EventArgs e)
         {
-            //if (_imageIndex >= (_loadedDefects.Count - 1)) { return; }
+            if (imageIndex >= (totalImages - 1)) { return; }
 
-            ////clear previous image and data
+            //clear previous image and data
             //r = Rectangle.Empty;
-            //pictureBox1.Invalidate();
-            //Graphics g = pictureBox1.CreateGraphics();
-            //g.Clear(pictureBox1.BackColor);
-            //pictureBox1.Update();
+            pictureBox1.Invalidate();
+            Graphics g = pictureBox1.CreateGraphics();
+            g.Clear(pictureBox1.BackColor);
+            pictureBox1.Update();
 
-            //_imageIndex++;
+            imageIndex++;
 
             //Defect newDef = _loadedDefects[_imageIndex];
             //string pathy = newDef.imagePath;
+
+            //pictureBox1.Image = new Bitmap(imagepaths[imageIndex]);
+
+            originalImage = new Bitmap(imagepaths[imageIndex]);
+
+            pictureBox1.Image = originalImage;
+
+            w = originalImage.Width;
+            h = originalImage.Height;
+
+            lblImagePath.Text = imagepaths[imageIndex];
+            lblCurrentPosition.Text = imageIndex.ToString();
+
+            tbarZoom.Value = 25; // adjust trackbar to center
+            lblZoomVal.Text = "1";
+            //h = pictureBox1.Image.Height;
+            //w = pictureBox1.Image.Width;
+
+            //updateLabels(_imageIndex);
+            Refresh();
 
             //if (newDef.isNeedsBox)
             //{
@@ -815,19 +890,28 @@ void LoadInputImageFolder(string inputImageFolder)
             //{
             //    g = Graphics.FromImage(pictureBox1.Image);
             //    pictureBox1.Image = new Bitmap(pathy);
-            //    g.DrawRectangle(Pens.Red, newDef.rect);
+            //    //g.DrawRectangle(Pens.Red, newDef.rect);
             //    updateLabels(_imageIndex);
             //    Refresh();
             //}
         }
 
-        private void uiBrowse_Click(object sender, EventArgs e)
+        private void btnBrowse_Click(object sender, EventArgs e)
         {
-            var folder = FileBrowser.Instance.OpenDirectory(INPUT_IMAGE_FOLDER_TITLE);
-            if(folder != null)
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.ValidateNames = false;
+            openFileDialog.CheckFileExists = false;
+            openFileDialog.FileName = "Folder Selection";
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
-                uiInputImageFolder.Text = folder;
+                string folderPath = Path.GetDirectoryName(openFileDialog.FileName);
+                txbxInputImageFolder.Text = folderPath;
             }
+            //var folder = FileBrowser.Instance.OpenDirectory(INPUT_IMAGE_FOLDER_TITLE);
+            //if(folder != null)
+            //{
+            //    uiInputImageFolder.Text = folder;
+            //}
         }
 
         //void MergeDataset(string thumbnailImageFolder)
@@ -854,9 +938,36 @@ void LoadInputImageFolder(string inputImageFolder)
             {
                 pictureBox1.Image = null;
 
-                int s = tbarZoom.Value; // 1/50
-                pictureBox1.Image = ZoomPicture(orgImg, new Size(s, s));
-                lblZoomVal.Text = (s).ToString();
+                double v = Convert.ToDouble(tbarZoom.Value);
+                double m = Convert.ToDouble(tbarZoom.Maximum);
+
+                double s = 1;
+
+
+                if (v < m/2)
+                {
+                    // we are zooming out
+
+                    double diff = m - v;
+                    s = 1 - (diff / m);
+                }
+
+                else
+                {
+                    // we are zooming in
+                    double diff = v - (m / 2);
+                    s = 1 + (diff / m);
+                }
+
+
+                //double s = Convert.ToDouble(tbarZoom.Value) / Convert.ToDouble(tbarZoom.Maximum); // 1/50
+
+                int hn = Convert.ToInt16(s*h);
+                int wn = Convert.ToInt16(s*w);
+
+                pictureBox1.Image = ZoomPicture(originalImage, new Size(wn, hn));
+                lblZoomVal.Text = s.ToString();
+                //MessageBox.Show("new image size: " + hn.ToString() + " " + wn.ToString());
                 addDefects2img();
             }
         }
@@ -874,13 +985,37 @@ void LoadInputImageFolder(string inputImageFolder)
                 MessageBox.Show("You selected row: " + i.ToString());
 
                 // Get the values from the selected row
-                //string value1 = dataGridView1.SelectedRows[i-1].Cells[0].Value.ToString();
-                //string value2 = dataGridView1.SelectedRows[i-1].Cells[1].Value.ToString();
+                int loc_x = Convert.ToInt32(dataGridView1.SelectedRows[0].Cells[7].Value);
+                int loc_y = Convert.ToInt32(dataGridView1.SelectedRows[0].Cells[8].Value);
+                var def_h = Convert.ToInt32(dataGridView1.SelectedRows[0].Cells[9].Value);
+                var def_w = Convert.ToInt32(dataGridView1.SelectedRows[0].Cells[10].Value);
 
-                var whatmE = 3;
+                Rectangle rect = new Rectangle();
 
-                //UpdatePictureBoxWithRectangle(pictureBox1, r_n, Pens.Yellow);
+                rect.X = loc_x;
+                rect.Y = loc_y;
+                rect.Width = def_w;
+                rect.Height = def_h;
+
+                addDefects2img();
+
+                UpdatePictureBoxWithRectangle(pictureBox1, rect, Color.Yellow, 2);
             }
+        }
+
+        private void txbxInputImageFolder_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnDefectDetector_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Invoking Machine Learning Model... Please wait a moment... Press OK to proceed. ");
+        }
+
+        private void btnMakeReport_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Generating Inspection Report... Please wait a momment... Press OK to proceed.");
         }
     }
 }
