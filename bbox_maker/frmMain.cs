@@ -27,7 +27,7 @@ namespace inspectionUI
         public int h { get; set; }
         public int w { get; set; }
 
-        public double s { get; set; } //zoom factor
+        public double s { get; set; } //scaling, zoom factor
 
         bool _mouseIsDown = false;
 
@@ -206,8 +206,7 @@ namespace inspectionUI
 
                 //DrawRectangle(Pens.Red, r);
 
-                MessageBox.Show("r is: " + r.ToString());
-                MessageBox.Show("img, w, h: " + w.ToString() + " " + h.ToString());
+
 
                 DialogResult result = MessageBox.Show("Adding a Defect?", "Add defect?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 if (result == DialogResult.Yes)
@@ -225,14 +224,14 @@ namespace inspectionUI
                     newDefect.inspector = txbxInspector.Text;
                     newDefect.defect = "tba - sept 25";
                     
-                    // account for zoom in/out factor
+                    // account for scaling factor
 
-                    newDefect.location_x = Convert.ToInt32(r.X * (1 / s));
-                    newDefect.location_y = Convert.ToInt32(r.Y * (1 / s));
-                    newDefect.def_h = Convert.ToInt32(r.Height * (1 / s));
-                    newDefect.def_w = Convert.ToInt32(r.Width * (1 / s));
+                    newDefect.location_x = Convert.ToInt32(r.X / s);
+                    newDefect.location_y = Convert.ToInt32(r.Y / s);
+                    newDefect.def_h = Convert.ToInt32(r.Height / s);
+                    newDefect.def_w = Convert.ToInt32(r.Width / s);
                     newDefect.notes = "tba - sept 25";
-                    newDefect.r = r;
+                    newDefect.r = r; // r wrt scaled image
 
 
                     frmAddDefect form = new frmAddDefect(newDefect, table);
@@ -259,7 +258,6 @@ namespace inspectionUI
 
         public void addDefects2img()
         {
-            // add scaling factor here eventually.
 
             string[] defectlogs = File.ReadAllLines(defectslog_path);
 
@@ -277,10 +275,10 @@ namespace inspectionUI
                 int w = Convert.ToInt32(x[4]);
                 string inspector = x[5];
                 string defect = x[6];
-                int loc_x = Convert.ToInt32(x[7]);
-                int loc_y = Convert.ToInt32(x[8]);
-                int def_h = Convert.ToInt32(x[9]);
-                int def_w = Convert.ToInt32(x[10]);
+                int loc_x = Convert.ToInt32(Convert.ToDouble(x[7])*s);
+                int loc_y = Convert.ToInt32(Convert.ToDouble(x[8]) * s);
+                int def_h = Convert.ToInt32(Convert.ToDouble(x[9]) * s);
+                int def_w = Convert.ToInt32(Convert.ToDouble(x[10]) * s);
                 string notes = x[11];
 
                 // add everything to the table
@@ -932,7 +930,7 @@ void LoadInputImageFolder(string inputImageFolder)
             Inspector = txbxInspector.Text;
         }
 
-        private void tbarZoom_Scroll(object sender, EventArgs e)
+        public void tbarZoom_Scroll(object sender, EventArgs e)
         {
             if (tbarZoom.Value != 0)
             {
@@ -941,7 +939,7 @@ void LoadInputImageFolder(string inputImageFolder)
                 double v = Convert.ToDouble(tbarZoom.Value);
                 double m = Convert.ToDouble(tbarZoom.Maximum);
 
-                double s = 1;
+                //double s = 1;
 
 
                 if (v < m/2)
@@ -982,7 +980,6 @@ void LoadInputImageFolder(string inputImageFolder)
             if (dataGridView1.SelectedRows.Count > 0)
             {
                 int i = dataGridView1.SelectedRows[0].Index + 1;
-                MessageBox.Show("You selected row: " + i.ToString());
 
                 // Get the values from the selected row
                 int loc_x = Convert.ToInt32(dataGridView1.SelectedRows[0].Cells[7].Value);
@@ -992,10 +989,10 @@ void LoadInputImageFolder(string inputImageFolder)
 
                 Rectangle rect = new Rectangle();
 
-                rect.X = loc_x;
-                rect.Y = loc_y;
-                rect.Width = def_w;
-                rect.Height = def_h;
+                rect.X = Convert.ToInt32(loc_x * s);
+                rect.Y = Convert.ToInt32(loc_y * s);
+                rect.Width = Convert.ToInt32(def_w * s);
+                rect.Height = Convert.ToInt32(def_h * s);
 
                 addDefects2img();
 
@@ -1016,6 +1013,28 @@ void LoadInputImageFolder(string inputImageFolder)
         private void btnMakeReport_Click(object sender, EventArgs e)
         {
             MessageBox.Show("Generating Inspection Report... Please wait a momment... Press OK to proceed.");
+        }
+
+        private void lblZoomVal_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void panel1_Scroll(object sender, ScrollEventArgs e)
+        {
+            // picture is redrawn, update picturebox accordingly.
+
+            //addDefects2img();
+        }
+
+        private void panel1_MouseClick(object sender, MouseEventArgs e)
+        {
+            //addDefects2img();
+        }
+
+        private void pictureBox1_SizeChanged(object sender, EventArgs e)
+        {
+            //addDefects2img();
         }
     }
 }

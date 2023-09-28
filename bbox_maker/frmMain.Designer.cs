@@ -67,6 +67,7 @@
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
             this.pictureBox1.TabIndex = 1;
             this.pictureBox1.TabStop = false;
+            this.pictureBox1.SizeChanged += new System.EventHandler(this.pictureBox1_SizeChanged);
             this.pictureBox1.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBox1_Paint);
             this.pictureBox1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseDown);
             this.pictureBox1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseMove);
@@ -268,6 +269,8 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(1820, 498);
             this.panel1.TabIndex = 32;
+            this.panel1.Scroll += new System.Windows.Forms.ScrollEventHandler(this.panel1_Scroll);
+            this.panel1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseClick);
             // 
             // tbarZoom
             // 
@@ -300,6 +303,7 @@
             this.lblZoomVal.Size = new System.Drawing.Size(23, 25);
             this.lblZoomVal.TabIndex = 35;
             this.lblZoomVal.Text = "1";
+            this.lblZoomVal.Click += new System.EventHandler(this.lblZoomVal_Click);
             // 
             // btnDefectDetector
             // 
@@ -387,12 +391,12 @@
         public System.Windows.Forms.Label lblTotalCount;
         private System.Windows.Forms.Label label3;
         public System.Windows.Forms.TextBox txbxInspector;
-        private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.TrackBar tbarZoom;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label lblZoomVal;
         public System.Windows.Forms.Button btnDefectDetector;
         public System.Windows.Forms.Button btnMakeReport;
+        public System.Windows.Forms.Panel panel1;
     }
 }
 
