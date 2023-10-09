@@ -1,4 +1,5 @@
 ﻿//using inspectionUI.Lib;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -6,32 +7,73 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
 //using UI.MachineLearning;
 
 namespace inspectionUI
 {
-
     public partial class frmMain : Form
     {
-        //const string INPUT_IMAGE_FOLDER_TITLE = "Input image";
         public string image_path;
-        public string labelpath = @"C:\Users\sauce\OneDrive\Desktop\inspectionUI-master\inspectionUI\labels.txt";
-        public string defectslog_path = @"C:\Users\sauce\OneDrive\Desktop\bbox_maker-master\bbox_maker\defectslog.txt";
+        public string labelpath = @"C:\Users\TSI\source\repos\tsi-wsi-inspector-ui\bbox_maker\labels.txt";
+        public string defectslog_path = @"C:\Users\TSI\source\repos\tsi-wsi-inspector-ui\bbox_maker\defectslog.txt";
+
+        // cam0 - left
+        // cam1 - right
+        // cam2 - center
+        // left and right are mixed right now... need to adjust
+        public string leftimages = @"C:\Users\TSI\Desktop\oct-7\right";
+        public string rightimages = @"C:\Users\TSI\Desktop\oct-7\left";
+        public string centerimages = @"C:\Users\TSI\Desktop\oct-7\center";
+
+        public List<String> imagepaths_leftimgs;
+        public List<String> imagepaths_rightimgs;
+        public List<String> imagepaths_centerimgs;
+
+        public int totalLeftImages;
+        public int totalRightImages;
+        public int totalCenterImages;
+
+        public Image originalImage1;
+        public Image originalImage2;
+        public Image originalImage3;
+
+        public string image_path1;
+        public string image_path2;  
+        public string image_path3;
+
+        public string inputImageFolder = "C:\\Users\\TSI\\Desktop\\stills"; // Change for HMI
+
         Point _mousePositionDragStart { get; set; }
         Point _mousePositionDragged { get; set; }
         public int imageIndex { get; set; }
 
-        public int totalImages {get; set;}
+        public int totalImages { get; set; }
         public int h { get; set; }
         public int w { get; set; }
+
+        public int img1Index { get;set; }
+        public int img2Index { get; set; }
+        public int img3Index { get; set; }
+
+        public int h1 { get; set; }
+        public int w1 { get; set; }
+        public int h2 { get; set; }
+        public int w2 { get; set; }
+        public int h3 { get; set; }
+        public int w3 { get; set; }
 
         public double s { get; set; } //scaling, zoom factor
 
         bool _mouseIsDown = false;
 
         Rectangle r;
+        public int thickness ;
 
         public string Inspector;
 
@@ -45,41 +87,27 @@ namespace inspectionUI
         public int totalDefects;
         Image originalImage;
 
-        //public void LoadLabels(string path)
-        //{
-        //    List<string> lines = new List<string>();
+        // ML stuff
+        Process _pythonProcess;
+        public static readonly string pythonEnvDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"miniconda3\envs\pytorch-gpu");
+        public static readonly string pythonEnvPath = Path.Combine(pythonEnvDir, @"python.exe");
+        public static readonly string mlDIR = @"C:\Users\TSI\source\repos\threadinspection_Aug14\UI.MachineLearning";
+        public static string predictionScriptPath = Path.Combine(mlDIR, "detection_server.py");
 
-        //    try
-        //    {
-        //        using (StreamReader sr = new StreamReader(path))
-        //        {
-        //            string line;
-        //            while ((line = sr.ReadLine()) != null)
-        //            {
-        //                lines.Add(line);
-        //            }
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        Console.WriteLine("The file could not be read:");
-        //        Console.WriteLine(e.Message);
-        //    }
+        public int hn {get;set;}
+        public int wn { get; set; }
 
-        //    // populate combobox
-
-        //    foreach (string line in lines)
-        //    {
-        //        //cmbxLabel.Items.Add(line);
-        //    }
-
-        //}
 
         public frmMain(string inputImageFolder)
         {
-            inputImageFolder = "C:\\Users\\sauce\\OneDrive\\Desktop\\make_pano\\panos";
+            inputImageFolder = @"C:\Users\TSI\Desktop\oct-7";
+
+
             InitializeComponent();
             txbxInputImageFolder.Text = inputImageFolder;
+
+            imageIndex = 1;
+            lblCurrentPosition.Text = imageIndex.ToString();    
 
             //pictureBox1.SetStyle(ControlStyles.Selectable, true);
             Inspector = txbxInspector.Text;
@@ -92,28 +120,80 @@ namespace inspectionUI
 
         public void frmMain_Load(object sender, EventArgs e)
         {
+            s = 0.19;//0.15; // trying to conserve memory, 0.19 ideal
+            lblZoomVal.Text = s.ToString();
+            thickness = 3;
+            tbarZoom.Maximum = 100;
+
             var inputImageFolder = txbxInputImageFolder.Text;
             if((!string.IsNullOrWhiteSpace(inputImageFolder)) && Directory.Exists(txbxInputImageFolder.Text))
             {                
-                //LoadInputImageFolder(inputImageFolder);
-
                 loadImageToPictureBox(inputImageFolder);
 
-                //LoadLabels(labelpath);
-
-                // load file
+                tbarImage.Maximum = totalImages;
 
                 PopulateDataGridView();
 
                 addDefects2img();
 
-                s = 1; //set original zoom factor to unity
+                // invoke ML server.. Add new warm up image, old one takes too long
+
+                //_ = Task.Factory.StartNew(() => { ActivateMLserver(); });   // activate MLserver
 
             }
             else
             {
-                //uiInputImageFolder.Text = FileBrowser.Instance.GetRecentDirectory(INPUT_IMAGE_FOLDER_TITLE);
+                MessageBox.Show("having trouble loading form... ");
             }
+        }
+
+        void ActivateMLserver()
+        {
+            //_cTokenSrc = new CancellationTokenSource();
+
+            try
+            {
+                var pyStartInfo = new ProcessStartInfo(); // run the python script
+                pyStartInfo.FileName = pythonEnvPath;
+                pyStartInfo.UseShellExecute = false;
+                pyStartInfo.CreateNoWindow = false; //true before, we are debugging right now...
+                pyStartInfo.RedirectStandardOutput = false; //true before
+                pyStartInfo.RedirectStandardError = false; //true before
+                pyStartInfo.Arguments = $"\"{predictionScriptPath}\"";
+
+                using (var pythonProcess = Process.Start(pyStartInfo))
+                {
+                    _pythonProcess = pythonProcess;
+                    pythonProcess.WaitForExit();
+                }
+            }
+            catch (System.Exception e)
+            {
+                MessageBox.Show("Error: " + e.Message, "DEFECT DETECTOR ML SERVER ERROR"); // not sure what to anticpate here just yet...
+                Console.WriteLine("DEFECT DETECTOR ML SERVER ERROR!" + e.Message);
+                Environment.Exit(1);
+            }
+        }
+
+        public static string FindDirectory(string currentDirectory, string targetDirectory)
+        {
+            targetDirectory = targetDirectory.ToLower();
+            // Search the current directory and all subdirectories.
+            foreach (string dir in Directory.GetDirectories(currentDirectory, "*", SearchOption.TopDirectoryOnly))
+            {
+                if (Path.GetFileName(dir).ToLower().Equals(targetDirectory))
+                    return dir;
+            }
+
+            // If the directory was not found, go up to the parent directory (if there is one) and search again.
+            DirectoryInfo parentDir = Directory.GetParent(currentDirectory);
+            if (parentDir != null)
+            {
+                return FindDirectory(parentDir.FullName, targetDirectory);
+            }
+
+            // If there is no parent directory (i.e., we are at the root) and the directory was not found, return null.
+            throw new Exception($"{targetDirectory} not found in {currentDirectory} or it's parent.");
         }
 
         Image ZoomPicture(Image img, Size s)
@@ -148,37 +228,41 @@ namespace inspectionUI
                 {
                     Rectangle r = GetDraggedRect();
 
-                    e.Graphics.DrawRectangle(Pens.Red, r);
-
-                    //UpdatePictureBoxWithRectangle(pictureBox1, r);
+                    Pen rectPen = new Pen(Color.Red, thickness);
+                    e.Graphics.DrawRectangle(rectPen, r);
                 }
                 
-
-                //e.Graphics.DrawRectangle(Pens.Red, _loadedDefects[_imageIndex].rect);
-
-                //if ((_loadedDefects != null) && (_imageIndex < _loadedDefects.Count()))
-                //{
-                //    if (_mouseIsDown)
-                //    {
-                //        _loadedDefects[_imageIndex].rect = GetDraggedRect();
-                //    }
-                //    e.Graphics.DrawRectangle(Pens.Red, _loadedDefects[_imageIndex].rect);
-                //}
             }
+        }
 
-            // need to reset if button is changed.
+        private void pictureBox2_Paint(object sender, PaintEventArgs e)
+        {
+            if (r != null && _mouseIsDown)
+            {
+                if (_mouseIsDown)
+                {
+                    Rectangle r = GetDraggedRect();
 
-            //if (r != null)
-            //{
-            //    if ((_loadedDefects != null) && (_imageIndex < _loadedDefects.Count()))
-            //    {
-            //        if (_mouseIsDown)
-            //        {
-            //            _loadedDefects[_imageIndex].rect = GetDraggedRect();
-            //        }
-            //        e.Graphics.DrawRectangle(Pens.Red, _loadedDefects[_imageIndex].rect);
-            //    }
-            //}
+                    Pen rectPen = new Pen(Color.Red, thickness);
+                    e.Graphics.DrawRectangle(rectPen, r);
+                }
+
+            }
+        }
+
+
+        private void pictureBox3_Paint(object sender, PaintEventArgs e)
+        {
+            if (r != null && _mouseIsDown)
+            {
+                if (_mouseIsDown)
+                {
+                    Rectangle r = GetDraggedRect();
+                    Pen rectPen = new Pen(Color.Red, thickness);
+                    e.Graphics.DrawRectangle(rectPen, r);
+                }
+
+            }
         }
 
         public void pictureBox1_MouseDown(object sender, MouseEventArgs e)
@@ -218,7 +302,10 @@ namespace inspectionUI
 
                     newDefect.index = totalDefects +1;
                     newDefect.datetime = DateTime.Now.ToString();
-                    newDefect.image_name = imagepaths[imageIndex];
+                    //newDefect.image_name = imagepaths[imageIndex];
+
+                    newDefect.image_name = imagepaths_centerimgs[imageIndex];
+
                     newDefect.h = h;
                     newDefect.w = w;
                     newDefect.inspector = txbxInspector.Text;
@@ -232,6 +319,7 @@ namespace inspectionUI
                     newDefect.def_w = Convert.ToInt32(r.Width / s);
                     newDefect.notes = "tba - sept 25";
                     newDefect.r = r; // r wrt scaled image
+                    newDefect.image_index = imageIndex;
 
 
                     frmAddDefect form = new frmAddDefect(newDefect, table);
@@ -244,7 +332,12 @@ namespace inspectionUI
                 else if (result == DialogResult.No)
                 {
                     // User clicked No
-                    //pictureBox1.Invalidate();
+                    pictureBox1.Invalidate();
+                    pictureBox2.Invalidate();
+                    pictureBox3.Invalidate();
+
+                    // you will need to add previous defects to show
+
                 }
             }
         }
@@ -280,6 +373,7 @@ namespace inspectionUI
                 int def_h = Convert.ToInt32(Convert.ToDouble(x[9]) * s);
                 int def_w = Convert.ToInt32(Convert.ToDouble(x[10]) * s);
                 string notes = x[11];
+                string image_index = x[12];
 
                 // add everything to the table
 
@@ -287,12 +381,15 @@ namespace inspectionUI
 
                 // update image with rects
 
-                //Rectangle r_n = new Rectangle(loc_x, loc_y, def_h, def_w);
-                Rectangle r_n = new Rectangle(loc_x, loc_y, def_w, def_h);
+                if (image_name == image_path)
+                {
+                    Rectangle r_n = new Rectangle(loc_x, loc_y, def_w, def_h);
 
-                UpdatePictureBoxWithRectangle(pictureBox1, r_n, Color.Red, 2);
+                    UpdatePictureBoxWithRectangle(pictureBox1, r_n, Color.Red, thickness);
 
-                totalDefects = i;
+                    totalDefects = i;
+                }
+
 
             }
         }
@@ -316,6 +413,7 @@ namespace inspectionUI
             table.Columns.Add("def_w", typeof(int));
 
             table.Columns.Add("notes", typeof(string));
+            table.Columns.Add("image_index", typeof(int));
 
 
             string[] defectlogs = File.ReadAllLines(defectslog_path);
@@ -341,17 +439,18 @@ namespace inspectionUI
                     int def_h = Convert.ToInt32(x[9]);
                     int def_w = Convert.ToInt32(x[10]);
                     string notes = x[11];
+                    string image_index = x[12];
 
                     // add everything to the table
 
-                    table.Rows.Add(index, datetime, image_name, h, w, inspector, defect, loc_x, loc_y, def_h, def_w, notes);
+                    table.Rows.Add(index, datetime, image_name, h, w, inspector, defect, loc_x, loc_y, def_h, def_w, notes, image_index);
 
                     // update image with rects
 
                     //Rectangle r_n = new Rectangle(loc_x, loc_y, def_h, def_w);
                     Rectangle r_n = new Rectangle(loc_x, loc_y, def_w, def_h);
 
-                    UpdatePictureBoxWithRectangle(pictureBox1, r_n, Color.Red, 2);
+                    UpdatePictureBoxWithRectangle(pictureBox1, r_n, Color.Red, thickness);
 
                     totalDefects = i;
 
@@ -514,86 +613,127 @@ namespace inspectionUI
             }
         }
 
-        public void loadImageToPictureBox(string inputImageFolder)
+        public List<string> populateImageList(string inputFolder)
         {
-            r = Rectangle.Empty;
-            pictureBox1.Image = null;
-
-
-            imagepaths = new List<string>();
-
-            int count = 0;
-            foreach (string imageFileName in Directory.GetFiles(inputImageFolder, "*.jpg"))
+            List<string> outList = new List<string>();
+            foreach (string imageFileName in Directory.GetFiles(inputFolder, searchPattern: "*.jpg")) //bmp files are huge!
             {
                 string name = Path.GetFileNameWithoutExtension(imageFileName);
-
-                imagepaths.Add(imageFileName);
-
-                count++;
-
+                outList.Add(imageFileName);
             }
+            return outList;
+        }
 
-            imageIndex = 0;
-            totalImages = count;
+        public void loadImageToPictureBox(string inputImageFolder)
+        {
+            //s = 0.25; // mag factor
 
-            originalImage = new Bitmap(imagepaths[imageIndex]);
+            r = Rectangle.Empty;
+            pictureBox1.Image = null;
+            pictureBox2.Image = null;
+            pictureBox3.Image = null;
 
-            pictureBox1.Image = originalImage;
+            // modify for 3 image views
+            // cam0 - left
+            // cam1 - right
+            // cam2 - center
 
-            w = originalImage.Width;
-            h = originalImage.Height;
+            imagepaths_leftimgs = populateImageList(leftimages);
+            imagepaths_rightimgs = populateImageList(rightimages);
+            imagepaths_centerimgs = populateImageList(centerimages);
 
-            lblTotalCount.Text = count.ToString();
-            lblImagePath.Text = imagepaths[imageIndex];
-            lblCurrentPosition.Text = imageIndex.ToString();    
+            img1Index = 0;
+            img2Index = 0;
+            img3Index = 0;
+
+            totalLeftImages = imagepaths_leftimgs.Count;
+            totalRightImages = imagepaths_rightimgs.Count;
+            totalCenterImages = imagepaths_centerimgs.Count;
+
+            originalImage1 = new Bitmap(imagepaths_leftimgs[img1Index]);
+            originalImage2 = new Bitmap(imagepaths_rightimgs[img2Index]);
+            originalImage3 = new Bitmap(imagepaths_centerimgs[img3Index]);
 
 
-            //if (x.Length == 1) 
-            //    {
-            //        string label = x[x.Length - 1];
+            pictureBox1.Image = originalImage1;
+            pictureBox2.Image = originalImage2;
+            pictureBox3.Image = originalImage3;
 
-            //        System.Drawing.Image img = System.Drawing.Image.FromFile(imageFileName);
+            image_path1 = imagepaths_leftimgs[img1Index];
+            image_path2 = imagepaths_rightimgs[img2Index];
+            image_path3 = imagepaths_centerimgs[img3Index];
 
-            //        orgImg = img;
+            // need a way to organize w and h vals
+            w = originalImage1.Width;
+            h = originalImage1.Height;
 
-            //        int w = img.Width;
-            //        int h = img.Height;
+            w1 = originalImage1.Width;
+            h1 = originalImage1.Height;
 
-            //        //Defect def = new Defect();
+            w2 = originalImage2.Width;
+            h2 = originalImage2.Height;
 
-            //        //def.imagePath = imageFileName;
-            //        //def.rect = Rectangle.Empty;
-            //        //def.label = label;
-            //        //def.height = h;
-            //        //def.width = w;
-            //        //defectList.Add(def);
-            //        //count++;
+            w3 = originalImage3.Width;
+            h3 = originalImage3.Height;
 
-            //        //labels.Add(label);
-            //    }
+            pictureBox1.Image = ZoomPicture(originalImage3, new Size(Convert.ToInt32(s * w1), Convert.ToInt32(s * h1)));
+            pictureBox2.Image = ZoomPicture(originalImage2, new Size(Convert.ToInt32(s * w2), Convert.ToInt32(s * h2)));
+            pictureBox3.Image = ZoomPicture(originalImage1, new Size(Convert.ToInt32(s * w3), Convert.ToInt32(s * h3)));
+
+            totalImages = totalCenterImages;
+
+            lblTotalCount.Text = totalImages.ToString();
+            //lblImagePath.Text = imagepaths[imageIndex];
+            lblCurrentPosition.Text = imageIndex.ToString();
+
+
+            // old below...
+
+            //imagepaths = new List<string>();
+
+            //int count = 0;
+            //foreach (string imageFileName in Directory.GetFiles(inputImageFolder, searchPattern: "*.jpg")) //bmp files are huge!
+            //{
+            //    string name = Path.GetFileNameWithoutExtension(imageFileName);
+
+            //    imagepaths.Add(imageFileName);
+
+            //    count++;
 
             //}
+
+            //imageIndex = 0;
+            //totalImages = count;
+
+            //originalImage = new Bitmap(imagepaths[imageIndex]);
+
+            //pictureBox1.Image = originalImage;
+            //pictureBox2.Image = originalImage;
+            //pictureBox3.Image = originalImage;
+
+            //image_path = imagepaths[imageIndex];
+
+            //w = originalImage.Width;
+            //h = originalImage.Height;
+
+            //lblTotalCount.Text = count.ToString();
+            //lblImagePath.Text = imagepaths[imageIndex];
+            //lblCurrentPosition.Text = imageIndex.ToString();
+
+            //// resize 
+
+            //s = 0.25;
+            //hn = Convert.ToInt16(s * h);
+            //wn = Convert.ToInt16(s * w);
+
+            //pictureBox1.Image = ZoomPicture(originalImage, new Size(wn, hn));
+            //pictureBox2.Image = ZoomPicture(originalImage, new Size(wn, hn));
+            //pictureBox3.Image = ZoomPicture(originalImage, new Size(wn, hn));
+
 
             // enable toggle buttons
             btnPrevious.Enabled = true;
             btnNext.Enabled = true;
-
-            //// populate instance defect list
-            //_loadedDefects = defectList;
-            //_imageIndex = 0;
-
-            //// update combobox with unique defect classes
-            ////HashSet<string> uniqueLabels = new HashSet<string>(labels);
-            ////cmbxLabel.Items.AddRange(uniqueLabels.ToArray());
-
-            //// show first defect
-            //if (_loadedDefects.Count() > 0) 
-            //{
-            //    pictureBox1.Image = new Bitmap(_loadedDefects[_imageIndex].imagePath);
-            //    image_path = _loadedDefects[_imageIndex].imagePath;
-            //    lblImagePath.Text = image_path;
-            //}
-            ////updateLabels(_imageIndex);
 
             Refresh();
         }
@@ -659,101 +799,7 @@ namespace inspectionUI
             //Refresh();
         }
 
-        //protected override void OnMouseWheel(MouseEventArgs e)
-        //{
-
-        //    int delta = e.Delta;
-        //    int x = e.X;
-        //    int y = e.Y;
-
-        //    int zs = 50;//10
-            
-
-        //    if (e.Delta != 0)
-        //    {
-
-        //        if (delta > 0)
-        //        {
-        //            // Zoom in
-        //            pictureBox1.Width += zs;
-        //            pictureBox1.Height += zs;
-        //            return;
-        //        }
-        //        else if (delta < 0)
-        //        {
-        //            // Zoom out
-        //            pictureBox1.Width -= zs;
-        //            pictureBox1.Height -= zs;
-        //            return;
-        //        }
-
-        //        //if (e.Delta <= 0)
-        //        //{
-        //        //    //set minimum size to zoom
-        //        //    if (pictureBox1.Width < 50)
-        //        //        // lbl_Zoom.Text = pictureBox1.Image.Size; 
-        //        //        return;
-        //        //}
-        //        //else
-        //        //{
-        //        //    //set maximum size to zoom
-        //        //    if (pictureBox1.Width > 1000)
-        //        //        return;
-        //        //}
-        //        pictureBox1.Width += Convert.ToInt32(pictureBox1.Width * e.Delta / 1000);
-        //        pictureBox1.Height += Convert.ToInt32(pictureBox1.Height * e.Delta / 1000);
-        //    }
-        //}
-
-        //public void pictureBox1_MouseWheel(object sender, MouseEventArgs e)
-        //{
-        //int delta = e.Delta;
-        //int x = e.X;
-        //int y = e.Y;
-
-        //    if (delta > 0)
-        //    {
-        //        // Zoom in
-        //        pictureBox1.Width += 10;
-        //        pictureBox1.Height += 10;
-        //    }
-        //    else if (delta< 0)
-        //    {
-        //        // Zoom out
-        //        pictureBox1.Width -= 10;
-        //        pictureBox1.Height -= 10;
-        //    }
-
-//    // Center the zoom around the mouse cursor
-//    int newX = x - (int)(x * 0.1);
-//    int newY = y - (int)(y * 0.1);
-//    pictureBox1.Location = new Point(pictureBox1.Location.X + newX, pictureBox1.Location.Y + newY);
-//}
-
-// zooming feature, may not work...
-//protected override void OnMouseWheel(MouseEventArgs e)
-//{
-//    if (e.Delta != 0)
-//    {
-//        if (e.Delta <= 0)
-//        {
-//            //set minimum size to zoom
-//            if (pictureBox1.Width < 50)
-//                // lbl_Zoom.Text = pictureBox1.Image.Size; 
-//                return;
-//        }
-//        else
-//        {
-//            //set maximum size to zoom
-//            if (pictureBox1.Width > 1000)
-//                return;
-//        }
-//        pictureBox1.Width += Convert.ToInt32(pictureBox1.Width * e.Delta / 1000);
-//        pictureBox1.Height += Convert.ToInt32(pictureBox1.Height * e.Delta / 1000);
-//    }
-//}
-
-void LoadInputImageFolder(string inputImageFolder)
+        void LoadInputImageFolder(string inputImageFolder)
         {
             r = Rectangle.Empty;
             btnLoadFolder.Enabled = true;
@@ -781,117 +827,168 @@ void LoadInputImageFolder(string inputImageFolder)
                 lblImagePath.Text = _loadedDefects[i].imagePath;
                 image_path = lblImagePath.Text;
                 lblCurrentPosition.Text = (i + 1).ToString();
-                //lblBboxVals.Text = _loadedDefects[i].rect.ToString();
-                //lblHeight.Text = _loadedDefects[i].height.ToString();
-                //lblWidth.Text = _loadedDefects[i].width.ToString();
-                //lblTotalCount.Text = _loadedDefects.Count.ToString();
-                //lblHasBoundingBox.Text = _loadedDefects[i].isNeedsBox.ToString();
-                //cmbxLabel.Text = _loadedDefects[i].label.ToString();
             }
+        }
+
+        public void adjustpicturebox(PictureBox pbox, string camera)
+        {
+
+
+            //clear previous image and data
+            r = Rectangle.Empty;
+            pbox.Invalidate();
+
+            Graphics g = pbox.CreateGraphics();
+            g.Clear(pbox.BackColor);
+            //pbox.Update();
+
+            //imageIndex--;
+
+            //pictureBox1.Image = new Bitmap(imagepaths[imageIndex]);
+
+            if (camera == "left")
+            {
+                originalImage = new Bitmap(imagepaths_leftimgs[imageIndex]);
+            }
+
+
+            if (camera == "right")
+            {
+                originalImage = new Bitmap(imagepaths_rightimgs[imageIndex]);
+            }
+
+
+            if (camera == "center")
+            {
+                originalImage = new Bitmap(imagepaths_centerimgs[imageIndex]);
+            }
+
+            pbox.Image = originalImage;
+
+            w = originalImage.Width;
+            h = originalImage.Height;
+
+            g.Clear(pbox.BackColor);
+            hn = Convert.ToInt16(s * h);
+            wn = Convert.ToInt16(s * w);
+            pbox.Image = ZoomPicture(originalImage, new Size(wn, hn));
+            pbox.Update();
+
+            //lblImagePath.Text = imagepaths[imageIndex];
+            //image_path = imagepaths[imageIndex];
+            lblCurrentPosition.Text = imageIndex.ToString();
+
+            int newVal = Convert.ToInt32(s * tbarZoom.Maximum);
+
+            tbarZoom.Maximum = newVal;
+
+            tbarZoom.Value = Convert.ToInt32(newVal); // adjust trackbar to center
+            lblZoomVal.Text = s.ToString();
+
+            pbox.Refresh();
+
+            //addDefects2img();
         }
 
         public void btnPrevious_Click(object sender, EventArgs e)
         {
-            if (imageIndex <= 0) { return; }
 
-            //clear previous image and data
-            r = Rectangle.Empty;
-            pictureBox1.Invalidate();
-            Graphics g = pictureBox1.CreateGraphics();
-            g.Clear(pictureBox1.BackColor);
-            pictureBox1.Update();
+            // cam0 - left
+            // cam1 - right
+            // cam2 - center
 
             imageIndex--;
 
-            //pictureBox1.Image = new Bitmap(imagepaths[imageIndex]);
-
-            originalImage = new Bitmap(imagepaths[imageIndex]);
-
-            pictureBox1.Image = originalImage;
-
-            w = originalImage.Width;
-            h = originalImage.Height;
-
-            lblImagePath.Text = imagepaths[imageIndex];
-            lblCurrentPosition.Text = imageIndex.ToString();
-            //h = pictureBox1.Image.Height;
-            //w = pictureBox1.Image.Width;
-
-            //updateLabels(_imageIndex);
-
-            tbarZoom.Value = 25; // adjust trackbar to center
-            lblZoomVal.Text = "1";
+            adjustpicturebox(pictureBox1, "center");
+            adjustpicturebox(pictureBox2, "left");
+            adjustpicturebox(pictureBox3, "right");
 
             Refresh();
 
-            //if (newDef.isNeedsBox)
-            //{
-            //    pictureBox1.Image = new Bitmap(pathy);
-            //    //updateLabels(_imageIndex);
-            //    Refresh();
-            //}
-
-            //else
-            //{
-            //    g = Graphics.FromImage(pictureBox1.Image);
-            //    pictureBox1.Image = new Bitmap(pathy);
-            //    //g.DrawRectangle(Pens.Red, newDef.rect);
-            //    //updateLabels(_imageIndex);
-            //    Refresh();
-            //}
         }
 
         public void btnNext_Click(object sender, EventArgs e)
         {
-            if (imageIndex >= (totalImages - 1)) { return; }
-
-            //clear previous image and data
-            //r = Rectangle.Empty;
-            pictureBox1.Invalidate();
-            Graphics g = pictureBox1.CreateGraphics();
-            g.Clear(pictureBox1.BackColor);
-            pictureBox1.Update();
-
             imageIndex++;
 
-            //Defect newDef = _loadedDefects[_imageIndex];
-            //string pathy = newDef.imagePath;
+            adjustpicturebox(pictureBox1, "center");
+            adjustpicturebox(pictureBox2, "left");
+            adjustpicturebox(pictureBox3, "right");
 
-            //pictureBox1.Image = new Bitmap(imagepaths[imageIndex]);
-
-            originalImage = new Bitmap(imagepaths[imageIndex]);
-
-            pictureBox1.Image = originalImage;
-
-            w = originalImage.Width;
-            h = originalImage.Height;
-
-            lblImagePath.Text = imagepaths[imageIndex];
-            lblCurrentPosition.Text = imageIndex.ToString();
-
-            tbarZoom.Value = 25; // adjust trackbar to center
-            lblZoomVal.Text = "1";
-            //h = pictureBox1.Image.Height;
-            //w = pictureBox1.Image.Width;
-
-            //updateLabels(_imageIndex);
             Refresh();
 
-            //if (newDef.isNeedsBox)
-            //{
-            //    pictureBox1.Image = new Bitmap(pathy);
-            //    updateLabels(_imageIndex);
-            //    Refresh();
-            //}
+            //if (imageIndex >= (totalImages - 1)) { return; }
 
-            //else
-            //{
-            //    g = Graphics.FromImage(pictureBox1.Image);
-            //    pictureBox1.Image = new Bitmap(pathy);
-            //    //g.DrawRectangle(Pens.Red, newDef.rect);
-            //    updateLabels(_imageIndex);
-            //    Refresh();
-            //}
+            ////clear previous image and data
+            ////r = Rectangle.Empty;
+            //pictureBox1.Invalidate();
+
+            //Graphics g = pictureBox1.CreateGraphics();
+            //g.Clear(pictureBox1.BackColor);
+            //pictureBox1.Update();
+
+
+            ////pictureBox1.Image = ZoomPicture(g, new Size(wn, hn));
+            ////pictureBox1.Update();
+
+            //// resize 
+            //pictureBox1.Invalidate();
+
+            ////Graphics g = pictureBox1.CreateGraphics();
+
+
+
+            //imageIndex++;
+
+            ////Defect newDef = _loadedDefects[_imageIndex];
+            ////string pathy = newDef.imagePath;
+
+            ////pictureBox1.Image = new Bitmap(imagepaths[imageIndex]);
+
+            //originalImage = new Bitmap(imagepaths[imageIndex]);
+
+            //image_path = imagepaths[imageIndex];
+
+            //pictureBox1.Image = originalImage;
+
+            //w = originalImage.Width;
+            //h = originalImage.Height;
+
+            //g.Clear(pictureBox1.BackColor);
+            ////s = 0.25;
+            //hn = Convert.ToInt16(s * h);
+            //wn = Convert.ToInt16(s * w);
+            //pictureBox1.Image = ZoomPicture(originalImage, new Size(wn, hn));
+            //pictureBox1.Update();
+
+            //lblImagePath.Text = imagepaths[imageIndex];
+            //lblCurrentPosition.Text = imageIndex.ToString();
+
+            //tbarZoom.Value = 25; // adjust trackbar to center
+            //lblZoomVal.Text = "1";
+            ////h = pictureBox1.Image.Height;
+            ////w = pictureBox1.Image.Width;
+
+            ////updateLabels(_imageIndex);
+
+            //addDefects2img();
+            ////Refresh();
+
+            ////if (newDef.isNeedsBox)
+            ////{
+            ////    pictureBox1.Image = new Bitmap(pathy);
+            ////    updateLabels(_imageIndex);
+            ////    Refresh();
+            ////}
+
+            ////else
+            ////{
+            ////    g = Graphics.FromImage(pictureBox1.Image);
+            ////    pictureBox1.Image = new Bitmap(pathy);
+            ////    //g.DrawRectangle(Pens.Red, newDef.rect);
+            ////    updateLabels(_imageIndex);
+            ////    Refresh();
+            ////}
         }
 
         private void btnBrowse_Click(object sender, EventArgs e)
@@ -935,6 +1032,8 @@ void LoadInputImageFolder(string inputImageFolder)
             if (tbarZoom.Value != 0)
             {
                 pictureBox1.Image = null;
+                pictureBox2.Image = null;
+                pictureBox3.Image = null;
 
                 double v = Convert.ToDouble(tbarZoom.Value);
                 double m = Convert.ToDouble(tbarZoom.Maximum);
@@ -960,13 +1059,17 @@ void LoadInputImageFolder(string inputImageFolder)
 
                 //double s = Convert.ToDouble(tbarZoom.Value) / Convert.ToDouble(tbarZoom.Maximum); // 1/50
 
-                int hn = Convert.ToInt16(s*h);
-                int wn = Convert.ToInt16(s*w);
+                hn = Convert.ToInt16(s*h);
+                wn = Convert.ToInt16(s*w);
 
-                pictureBox1.Image = ZoomPicture(originalImage, new Size(wn, hn));
+
+                pictureBox1.Image = ZoomPicture(originalImage1, new Size(wn, hn));
+                pictureBox2.Image = ZoomPicture(originalImage2, new Size(wn, hn));
+                pictureBox3.Image = ZoomPicture(originalImage3, new Size(wn, hn));
+
                 lblZoomVal.Text = s.ToString();
                 //MessageBox.Show("new image size: " + hn.ToString() + " " + wn.ToString());
-                addDefects2img();
+                //addDefects2img();
             }
         }
 
@@ -987,6 +1090,8 @@ void LoadInputImageFolder(string inputImageFolder)
                 var def_h = Convert.ToInt32(dataGridView1.SelectedRows[0].Cells[9].Value);
                 var def_w = Convert.ToInt32(dataGridView1.SelectedRows[0].Cells[10].Value);
 
+                var image_path_name = dataGridView1.SelectedRows[0].Cells[10].Value.ToString();
+
                 Rectangle rect = new Rectangle();
 
                 rect.X = Convert.ToInt32(loc_x * s);
@@ -996,7 +1101,7 @@ void LoadInputImageFolder(string inputImageFolder)
 
                 addDefects2img();
 
-                UpdatePictureBoxWithRectangle(pictureBox1, rect, Color.Yellow, 2);
+                UpdatePictureBoxWithRectangle(pictureBox1, rect, Color.Yellow, thickness);
             }
         }
 
@@ -1008,6 +1113,99 @@ void LoadInputImageFolder(string inputImageFolder)
         private void btnDefectDetector_Click(object sender, EventArgs e)
         {
             MessageBox.Show("Invoking Machine Learning Model... Please wait a moment... Press OK to proceed. ");
+
+            GetDefects(image_path);
+
+        }
+
+        public void GetDefects(string imagePath)
+        {
+            // USES TCP-IP PROTOCOL FOR .NET 4.8 FRAMEWORK. 
+            // AVOIDS USING ASYNC TASKS, TO PRESERVE OBJECT CHARACTERISTICS of GetDefects. 
+
+            //var imagePath = Path.Combine(C.TEMP_DIR, $"dd-{DateTime.Now.ToString("yyddMMhhmmss")}.jpg");
+            //bitmap.SaveAsJpg(imagePath);
+
+            string csvpath = "";
+
+            //List<Defect> defects = new List<Defect>();
+            //List<DefectProperties> cDefects = new List<DefectProperties>();
+
+            // @TODO: CHANGE true TO: _inspectionSettings.AppSettingsModel.ActivateDefectDetector
+
+            //InspectionAppSettingsModel curr = new InspectionAppSettingsModel();
+            //bool whatisThis = curr.ActivateDefectDetector;
+
+
+            if (true) // make sure defect detection is enabled in constants. REMOVING CONSTANTS TO SETTINGS 
+            {
+                Console.WriteLine($"CLIENT: sending message:  {imagePath}");
+
+                try
+                {
+                    var request = JsonConvert.SerializeObject(new GetDefectsRequest()
+                    {
+                        path = imagePath,
+                        is_nose_scan = false
+                    });
+
+                    var responseData = SendNetworkRequest(request);
+                    GetDefectsResponse response = JsonConvert.DeserializeObject<GetDefectsResponse>(responseData);
+
+                    csvpath = response.csv;
+
+                    if (File.Exists(csvpath))
+                    {
+                        string[] lines = File.ReadAllLines(csvpath);
+
+                        if (lines.Length > 2) // make sure they exist
+                        {
+                            for (int i = 1; i < lines.Length; i++) // first line is header
+                            {
+                                string hm_line = lines[i].Trim();
+
+                                string[] hm_vals = hm_line.Split(',');
+
+                                double x = Convert.ToDouble(hm_vals[1]);
+                                double y = Convert.ToDouble(hm_vals[2]);
+                                string label = hm_vals[4];
+
+                                DefectProperties addMe = new DefectProperties();
+                                addMe.X = x;
+                                addMe.Y = y;
+                                addMe.BestTagName = label;
+
+                                //cDefects.Add(addMe);
+                            }
+                        }
+                    }
+
+                    //// now construct defect object for UI
+
+                    //double s = 96; //128
+                    //foreach (DefectProperties d in cDefects)
+                    //{
+                    //    Rect rect = new Rect(
+                    //        (int)(d.X - s / 2),
+                    //        (int)(d.Y - s / 2),
+                    //        (int)s,
+                    //        (int)s);
+
+                    //    BitmapSource thumbnail = DefectDetectorCommon.CreateDefectThumbnail(bitmap, rect);
+
+                    //    defects.Add(item: new Defect(rect, d.BestTagName, thumbnail));
+                    //}
+                }
+
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                    MessageBox.Show(ex.Message);
+                }
+
+            }
+            var returnsomethinghere = 3;
+            //return defects;
         }
 
         private void btnMakeReport_Click(object sender, EventArgs e)
@@ -1022,6 +1220,14 @@ void LoadInputImageFolder(string inputImageFolder)
 
         private void panel1_Scroll(object sender, ScrollEventArgs e)
         {
+
+            //panel2.AutoScrollPosition = new Point(panel1.AutoScrollPosition.X, panel1.AutoScrollPosition.Y);
+            //panel3.AutoScrollPosition = new Point(panel1.AutoScrollPosition.X, panel1.AutoScrollPosition.Y);
+
+            //panel2.Update();
+            //panel3.Update();  
+
+
             // picture is redrawn, update picturebox accordingly.
 
             //addDefects2img();
@@ -1036,5 +1242,136 @@ void LoadInputImageFolder(string inputImageFolder)
         {
             //addDefects2img();
         }
+
+        string SendNetworkRequest(string requestMessage)
+        {
+            using (TcpClient clientSocket = new TcpClient())
+            {
+                clientSocket.Connect(hostname: "127.0.0.1", port: 5047); // "127.0.0.1, port = 80
+                NetworkStream serverStream = clientSocket.GetStream();
+                var messageData = Encoding.UTF8.GetBytes(requestMessage);
+                serverStream.Write(messageData, 0, messageData.Length);
+                using (var sr = new StreamReader(serverStream, Encoding.UTF8))
+                {
+                    string responseData = sr.ReadToEnd();
+                    Console.WriteLine(responseData);
+                    return responseData;
+                }
+            }
+        }
+
+        private void tbarImage_Scroll(object sender, EventArgs e)
+        {
+            imageIndex = imageIndex + tbarImage.Value; ;
+
+            adjustpicturebox(pictureBox1, "center");
+            adjustpicturebox(pictureBox2, "left");
+            adjustpicturebox(pictureBox3, "right");
+
+            Refresh();
+
+            //// move on to the next image
+
+            //int newImage = tbarImage.Value;
+
+            //if (newImage >= (totalImages - 1)) { return; }
+
+            //pictureBox1.Invalidate();
+
+            //Graphics g = pictureBox1.CreateGraphics();
+            //g.Clear(pictureBox1.BackColor);
+            //pictureBox1.Update();
+
+
+            //originalImage = new Bitmap(imagepaths[newImage]);
+
+            //image_path = imagepaths[imageIndex];
+
+            //pictureBox1.Image = originalImage;
+
+            //w = originalImage.Width;
+            //h = originalImage.Height;
+
+            //g.Clear(pictureBox1.BackColor);
+            ////s = 0.25;
+            //hn = Convert.ToInt16(s * h);
+            //wn = Convert.ToInt16(s * w);
+            //pictureBox1.Image = ZoomPicture(originalImage, new Size(wn, hn));
+            //pictureBox1.Update();
+
+            //lblImagePath.Text = imagepaths[imageIndex];
+            //lblCurrentPosition.Text = imageIndex.ToString();
+
+            //tbarZoom.Value = 25; // adjust trackbar to center
+            //lblZoomVal.Text = "1";
+
+            //imageIndex = newImage;
+            //lblCurrentPosition.Text = imageIndex.ToString();
+
+            //addDefects2img();
+        }
+
+
+
+        private void pictureBox3_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void panel3_Scroll(object sender, ScrollEventArgs e)
+        {
+            //panel1.AutoScrollPosition = new Point(panel3.AutoScrollPosition.X, panel3.AutoScrollPosition.Y);
+            //panel2.AutoScrollPosition = new Point(panel3.AutoScrollPosition.X, panel3.AutoScrollPosition.Y);
+
+            //panel1.Update();
+            //panel2.Update();
+        }
+
+        private void panel2_Scroll(object sender, ScrollEventArgs e)
+        {
+            //panel1.AutoScrollPosition = new Point(panel2.AutoScrollPosition.X, panel2.AutoScrollPosition.Y);
+            //panel3.AutoScrollPosition = new Point(panel2.AutoScrollPosition.X, panel2.AutoScrollPosition.Y);
+
+            //panel1.Update();
+            //panel3.Update();
+        }
+    }
+
+    public class GetDefectsRequest
+    {
+        public string msg_type { get; set; } = "eval";
+        public string path { get; set; }
+        public bool is_nose_scan { get; set; }
+    }
+
+    public class GetDefectsResponse
+    {
+        public double elapsed_time { get; set; }
+        public int num_defects { get; set; }
+        public string path { get; set; }
+        public string csv { get; set; }
+    }
+    public class DefectProperties
+    {
+        // added to utilize new DL model
+        // TODO - UPDATE by removing Cognex object artifacts
+
+        public string FilePath { get; set; }
+        public double X { get; set; }
+
+        public double Y { get; set; }
+
+        public double Height { get; set; }
+
+        public double Width { get; set; }
+
+        public string BestTagName { get; set; }
+        public double BestTagScore { get; set; }
+
+        public double Redscore { get; set; }
+
+        public List<string> Tags { get; set; }
+        public List<double> GreenScores { get; set; }
+
     }
 }

@@ -13,8 +13,11 @@ namespace inspectionUI
 {
     public partial class frmAddDefect : Form
     {
-        public string defects_path = @"C:\Users\sauce\OneDrive\Desktop\bbox_maker-master\bbox_maker\labels.txt";
-        public string defectslog_path = @"C:\Users\sauce\OneDrive\Desktop\bbox_maker-master\bbox_maker\defectslog.txt";
+        //public string defects_path = @"C:\Users\sauce\OneDrive\Desktop\bbox_maker-master\bbox_maker\labels.txt";
+        //public string defectslog_path = @"C:\Users\sauce\OneDrive\Desktop\bbox_maker-master\bbox_maker\defectslog.txt";
+
+        public string defects_path = @"C:\Users\TSI\source\repos\tsi-wsi-inspector-ui\bbox_maker\labels.txt";
+        public string defectslog_path = @"C:\Users\TSI\source\repos\tsi-wsi-inspector-ui\bbox_maker\defectslog.txt";
 
 
         public List<string> currentDefects = new List<string>();
@@ -166,7 +169,7 @@ namespace inspectionUI
 
                 //string newrecord = "index, datetime, image_name, h, w, inspector, defect, loc_x, loc_y, def_h, def_w, notes;"; //add new record here
 
-                string newrecord = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", d.index, d.datetime, d.image_name, d.h, d.w, d.inspector, d.defect, d.location_x, d.location_y, d.def_h, d.def_w, d.notes);
+                string newrecord = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}, {12}", d.index, d.datetime, d.image_name, d.h, d.w, d.inspector, d.defect, d.location_x, d.location_y, d.def_h, d.def_w, d.notes, d.image_index);
 
                 string newName = d.label;
                 Array.Resize(ref records, records.Length + 1);

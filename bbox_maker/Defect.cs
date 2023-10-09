@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -32,5 +33,6 @@ namespace inspectionUI
         public int def_w;
         public string notes;
         public Rectangle r;
+        public int image_index;
     }
 }

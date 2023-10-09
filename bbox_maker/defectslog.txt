@@ -1,4 +1,6 @@
-index, datetime, image_path, h, w, inspector, defect, loc_x, loc_y, def_h, def_w, notes;
-1,9/28/2023 10:15:37 AM,C:\Users\sauce\OneDrive\Desktop\make_pano\panos\125_hori_pano_no_stitch.jpg,3684,7500,M. Salamanca,scratch,231,443,135,180,125ws - target - m = 1
-2,9/28/2023 10:16:11 AM,C:\Users\sauce\OneDrive\Desktop\make_pano\panos\125_hori_pano_no_stitch.jpg,3684,7500,M. Salamanca,scratch,233,442,136,176,125ws - target m = 0.45
-3,9/28/2023 10:16:43 AM,C:\Users\sauce\OneDrive\Desktop\make_pano\panos\125_hori_pano_no_stitch.jpg,3684,7500,M. Salamanca,scratch,240,438,142,175,125ws - target - m = 0.4
+index, datetime, image_path, h, w, inspector, defect, loc_x, loc_y, def_h, def_w, notes, image_index;
+2,10/5/2023 3:34:11 PM,C:\Users\TSI\Desktop\oct-5-data\stills\005_img.jpg,3684,4912,M. Salamanca,debris,2584,3084,188,216,yagaga, 0
+2,10/5/2023 3:37:35 PM,C:\Users\TSI\Desktop\oct-5-data\stills\005_img.jpg,3684,4912,M. Salamanca,scratch,2624,3108,164,184,test, 5
+3,10/5/2023 3:38:49 PM,C:\Users\TSI\Desktop\oct-5-data\stills\005_img.jpg,3684,4912,M. Salamanca,debris,2632,3112,164,144,yayaya, 5
+4,10/5/2023 3:39:06 PM,C:\Users\TSI\Desktop\oct-5-data\stills\011_img.jpg,3684,4912,M. Salamanca,scratch,2580,3100,200,472,, 11
+5,10/9/2023 12:40:09 PM,C:\Users\TSI\Desktop\oct-7\center\007_img.jpg,4912,3684,M. Salamanca,scratch,547,1511,716,1042,This appears to be a calibration object., 7
