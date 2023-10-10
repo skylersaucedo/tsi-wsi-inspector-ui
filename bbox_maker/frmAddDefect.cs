@@ -169,7 +169,7 @@ namespace inspectionUI
 
                 //string newrecord = "index, datetime, image_name, h, w, inspector, defect, loc_x, loc_y, def_h, def_w, notes;"; //add new record here
 
-                string newrecord = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}, {12}", d.index, d.datetime, d.image_name, d.h, d.w, d.inspector, d.defect, d.location_x, d.location_y, d.def_h, d.def_w, d.notes, d.image_index);
+                string newrecord = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}, {12}, {13}", d.index, d.datetime, d.image_name, d.h, d.w, d.inspector, d.defect, d.location_x, d.location_y, d.def_h, d.def_w, d.notes, d.image_index, d.pipe_id);
 
                 string newName = d.label;
                 Array.Resize(ref records, records.Length + 1);

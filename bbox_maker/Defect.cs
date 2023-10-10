@@ -34,5 +34,6 @@ namespace inspectionUI
         public string notes;
         public Rectangle r;
         public int image_index;
+        public string pipe_id;
     }
 }

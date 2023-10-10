@@ -1,6 +1,6 @@
-index, datetime, image_path, h, w, inspector, defect, loc_x, loc_y, def_h, def_w, notes, image_index;
-2,10/5/2023 3:34:11 PM,C:\Users\TSI\Desktop\oct-5-data\stills\005_img.jpg,3684,4912,M. Salamanca,debris,2584,3084,188,216,yagaga, 0
-2,10/5/2023 3:37:35 PM,C:\Users\TSI\Desktop\oct-5-data\stills\005_img.jpg,3684,4912,M. Salamanca,scratch,2624,3108,164,184,test, 5
-3,10/5/2023 3:38:49 PM,C:\Users\TSI\Desktop\oct-5-data\stills\005_img.jpg,3684,4912,M. Salamanca,debris,2632,3112,164,144,yayaya, 5
-4,10/5/2023 3:39:06 PM,C:\Users\TSI\Desktop\oct-5-data\stills\011_img.jpg,3684,4912,M. Salamanca,scratch,2580,3100,200,472,, 11
-5,10/9/2023 12:40:09 PM,C:\Users\TSI\Desktop\oct-7\center\007_img.jpg,4912,3684,M. Salamanca,scratch,547,1511,716,1042,This appears to be a calibration object., 7
+index, datetime, image_path, h, w, inspector, defect, loc_x, loc_y, def_h, def_w, notes, image_index, pipe_ID;
+6,10/10/2023 9:41:31 AM,C:\Users\TSI\Desktop\oct-7\center\392_img.jpg,4912,3684,M. Salamanca,fff,500,1663,1058,1000,sssss, 392, GTssss
+7,10/10/2023 9:46:10 AM,C:\Users\TSI\Desktop\oct-7\center\005_img.jpg,4912,3684,M. Salamanca,new guy,268,1400,732,1368,its a guy, 5, SomePIPeID
+3,10/10/2023 11:41:15 AM,C:\Users\TSI\Desktop\oct-10\center\001_img.jpg,4912,3684,M. Salamanca,scratch,226,2232,642,537,, 1, 
+4,10/10/2023 11:42:24 AM,C:\Users\TSI\Desktop\oct-10\center\001_img.jpg,4912,3684,M. Salamanca,scratch,237,2342,468,463,testing pipe ID, 1, GT690-1001122
+5,10/10/2023 11:42:40 AM,C:\Users\TSI\Desktop\oct-10\center\001_img.jpg,4912,3684,M. Salamanca,scratch,2042,1711,842,779,pipe id?, 1, some_new_pipe

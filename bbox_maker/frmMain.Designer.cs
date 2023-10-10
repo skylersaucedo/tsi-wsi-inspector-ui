@@ -28,7 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.btnLoadFolder = new System.Windows.Forms.Button();
             this.btnPrevious = new System.Windows.Forms.Button();
@@ -53,12 +54,14 @@
             this.btnDefectDetector = new System.Windows.Forms.Button();
             this.btnMakeReport = new System.Windows.Forms.Button();
             this.tbarImage = new System.Windows.Forms.TrackBar();
-            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.txbxPipeID = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.panel2 = new System.Windows.Forms.Panel();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.panel3 = new System.Windows.Forms.Panel();
             this.pictureBox3 = new System.Windows.Forms.PictureBox();
+            this.cxbxSnycScrollbars = new System.Windows.Forms.CheckBox();
+            this.cxbxInvertImages = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.panel1.SuspendLayout();
@@ -162,14 +165,14 @@
             this.dataGridView1.Location = new System.Drawing.Point(769, 2307);
             this.dataGridView1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.dataGridView1.Name = "dataGridView1";
-            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle6.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle6.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle6.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle6.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle6.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridView1.RowHeadersDefaultCellStyle = dataGridViewCellStyle6;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridView1.RowHeadersDefaultCellStyle = dataGridViewCellStyle1;
             this.dataGridView1.RowHeadersWidth = 51;
             this.dataGridView1.RowTemplate.Height = 24;
             this.dataGridView1.Size = new System.Drawing.Size(2762, 403);
@@ -353,15 +356,16 @@
             this.tbarImage.TabIndex = 38;
             this.tbarImage.Scroll += new System.EventHandler(this.tbarImage_Scroll);
             // 
-            // textBox1
+            // txbxPipeID
             // 
-            this.textBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.textBox1.Location = new System.Drawing.Point(219, 2486);
-            this.textBox1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(442, 49);
-            this.textBox1.TabIndex = 39;
-            this.textBox1.Text = "GT690-1001122";
+            this.txbxPipeID.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txbxPipeID.Location = new System.Drawing.Point(219, 2486);
+            this.txbxPipeID.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.txbxPipeID.Name = "txbxPipeID";
+            this.txbxPipeID.Size = new System.Drawing.Size(442, 49);
+            this.txbxPipeID.TabIndex = 39;
+            this.txbxPipeID.Text = "GT690-1001122";
+            this.txbxPipeID.TextChanged += new System.EventHandler(this.txbxPipeID_TextChanged);
             // 
             // label5
             // 
@@ -419,16 +423,44 @@
             this.pictureBox3.Click += new System.EventHandler(this.pictureBox3_Click);
             this.pictureBox3.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBox3_Paint);
             // 
+            // cxbxSnycScrollbars
+            // 
+            this.cxbxSnycScrollbars.AutoSize = true;
+            this.cxbxSnycScrollbars.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.cxbxSnycScrollbars.Location = new System.Drawing.Point(4039, 2191);
+            this.cxbxSnycScrollbars.Name = "cxbxSnycScrollbars";
+            this.cxbxSnycScrollbars.Size = new System.Drawing.Size(383, 41);
+            this.cxbxSnycScrollbars.TabIndex = 43;
+            this.cxbxSnycScrollbars.Text = "synchronize scrollbars?";
+            this.cxbxSnycScrollbars.UseVisualStyleBackColor = true;
+            this.cxbxSnycScrollbars.CheckedChanged += new System.EventHandler(this.cxbxSnycScrollbars_CheckedChanged);
+            // 
+            // cxbxInvertImages
+            // 
+            this.cxbxInvertImages.AutoSize = true;
+            this.cxbxInvertImages.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.cxbxInvertImages.Location = new System.Drawing.Point(4039, 2247);
+            this.cxbxInvertImages.Name = "cxbxInvertImages";
+            this.cxbxInvertImages.Size = new System.Drawing.Size(257, 41);
+            this.cxbxInvertImages.TabIndex = 44;
+            this.cxbxInvertImages.Text = "Invert Images?";
+            this.cxbxInvertImages.UseVisualStyleBackColor = true;
+            this.cxbxInvertImages.CheckedChanged += new System.EventHandler(this.cxbxInvertImages_CheckedChanged);
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 25F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Window;
+            this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
+            this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
             this.ClientSize = new System.Drawing.Size(4504, 2763);
+            this.Controls.Add(this.cxbxInvertImages);
+            this.Controls.Add(this.cxbxSnycScrollbars);
             this.Controls.Add(this.panel3);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.label5);
-            this.Controls.Add(this.textBox1);
+            this.Controls.Add(this.txbxPipeID);
             this.Controls.Add(this.tbarImage);
             this.Controls.Add(this.btnMakeReport);
             this.Controls.Add(this.btnDefectDetector);
@@ -452,9 +484,10 @@
             this.Controls.Add(this.btnNext);
             this.Controls.Add(this.btnPrevious);
             this.Controls.Add(this.btnLoadFolder);
+            this.DoubleBuffered = true;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(6);
             this.Name = "frmMain";
-            this.ShowIcon = false;
             this.Text = "TSI - Inspector View";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.frmMain_Load);
@@ -500,12 +533,14 @@
         public System.Windows.Forms.Button btnMakeReport;
         public System.Windows.Forms.Panel panel1;
         public System.Windows.Forms.TrackBar tbarImage;
-        public System.Windows.Forms.TextBox textBox1;
+        public System.Windows.Forms.TextBox txbxPipeID;
         public System.Windows.Forms.Label label5;
         public System.Windows.Forms.Panel panel2;
         public System.Windows.Forms.PictureBox pictureBox2;
         public System.Windows.Forms.Panel panel3;
         public System.Windows.Forms.PictureBox pictureBox3;
+        public System.Windows.Forms.CheckBox cxbxSnycScrollbars;
+        public System.Windows.Forms.CheckBox cxbxInvertImages;
     }
 }
 

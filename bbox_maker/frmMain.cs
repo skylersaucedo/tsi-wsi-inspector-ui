@@ -22,14 +22,17 @@ namespace inspectionUI
         public string image_path;
         public string labelpath = @"C:\Users\TSI\source\repos\tsi-wsi-inspector-ui\bbox_maker\labels.txt";
         public string defectslog_path = @"C:\Users\TSI\source\repos\tsi-wsi-inspector-ui\bbox_maker\defectslog.txt";
-
+        
         // cam0 - left
         // cam1 - right
         // cam2 - center
         // left and right are mixed right now... need to adjust
-        public string leftimages = @"C:\Users\TSI\Desktop\oct-7\right";
-        public string rightimages = @"C:\Users\TSI\Desktop\oct-7\left";
-        public string centerimages = @"C:\Users\TSI\Desktop\oct-7\center";
+
+        public string leftimages = @"C:\Users\TSI\Desktop\oct-10_bmp\right";
+        public string rightimages = @"C:\Users\TSI\Desktop\oct-10_bmp\left";
+        public string centerimages = @"C:\Users\TSI\Desktop\oct-10_bmp\center";
+        public string inputImageFolder = @"C:\Users\TSI\Desktop\oct-10_bmp\center"; // Change for HMI
+
 
         public List<String> imagepaths_leftimgs;
         public List<String> imagepaths_rightimgs;
@@ -46,8 +49,6 @@ namespace inspectionUI
         public string image_path1;
         public string image_path2;  
         public string image_path3;
-
-        public string inputImageFolder = "C:\\Users\\TSI\\Desktop\\stills"; // Change for HMI
 
         Point _mousePositionDragStart { get; set; }
         Point _mousePositionDragged { get; set; }
@@ -71,6 +72,8 @@ namespace inspectionUI
         public double s { get; set; } //scaling, zoom factor
 
         bool _mouseIsDown = false;
+        bool bolSyncBars = false;
+        bool bolInvertImage = false;
 
         Rectangle r;
         public int thickness ;
@@ -97,10 +100,12 @@ namespace inspectionUI
         public int hn {get;set;}
         public int wn { get; set; }
 
+        public string pipeID { get; set; }  
+
 
         public frmMain(string inputImageFolder)
         {
-            inputImageFolder = @"C:\Users\TSI\Desktop\oct-7";
+            //inputImageFolder = @"C:\Users\TSI\Desktop\oct-7";
 
 
             InitializeComponent();
@@ -125,10 +130,12 @@ namespace inspectionUI
             thickness = 3;
             tbarZoom.Maximum = 100;
 
-            var inputImageFolder = txbxInputImageFolder.Text;
+            pipeID = txbxPipeID.Text;
+
+            txbxInputImageFolder.Text = inputImageFolder;
             if((!string.IsNullOrWhiteSpace(inputImageFolder)) && Directory.Exists(txbxInputImageFolder.Text))
             {                
-                loadImageToPictureBox(inputImageFolder);
+                loadImageToPictureBox();
 
                 tbarImage.Maximum = totalImages;
 
@@ -320,6 +327,7 @@ namespace inspectionUI
                     newDefect.notes = "tba - sept 25";
                     newDefect.r = r; // r wrt scaled image
                     newDefect.image_index = imageIndex;
+                    newDefect.pipe_id = pipeID;
 
 
                     frmAddDefect form = new frmAddDefect(newDefect, table);
@@ -414,6 +422,8 @@ namespace inspectionUI
 
             table.Columns.Add("notes", typeof(string));
             table.Columns.Add("image_index", typeof(int));
+            table.Columns.Add(columnName: "pipe_id", typeof(string));
+
 
 
             string[] defectlogs = File.ReadAllLines(defectslog_path);
@@ -440,10 +450,11 @@ namespace inspectionUI
                     int def_w = Convert.ToInt32(x[10]);
                     string notes = x[11];
                     string image_index = x[12];
+                    string pipe_id = x[13];
 
                     // add everything to the table
 
-                    table.Rows.Add(index, datetime, image_name, h, w, inspector, defect, loc_x, loc_y, def_h, def_w, notes, image_index);
+                    table.Rows.Add(index, datetime, image_name, h, w, inspector, defect, loc_x, loc_y, def_h, def_w, notes, image_index, pipe_id);
 
                     // update image with rects
 
@@ -615,8 +626,12 @@ namespace inspectionUI
 
         public List<string> populateImageList(string inputFolder)
         {
+            //string ext = "*.jpg";
+            string ext = "*.bmp";
+            //string ext = "*.png";
+
             List<string> outList = new List<string>();
-            foreach (string imageFileName in Directory.GetFiles(inputFolder, searchPattern: "*.jpg")) //bmp files are huge!
+            foreach (string imageFileName in Directory.GetFiles(inputFolder, searchPattern: ext)) //bmp files are huge!
             {
                 string name = Path.GetFileNameWithoutExtension(imageFileName);
                 outList.Add(imageFileName);
@@ -624,7 +639,7 @@ namespace inspectionUI
             return outList;
         }
 
-        public void loadImageToPictureBox(string inputImageFolder)
+        public void loadImageToPictureBox()
         {
             //s = 0.25; // mag factor
 
@@ -641,6 +656,14 @@ namespace inspectionUI
             imagepaths_leftimgs = populateImageList(leftimages);
             imagepaths_rightimgs = populateImageList(rightimages);
             imagepaths_centerimgs = populateImageList(centerimages);
+
+            List<int> counts = new List<int>();
+            counts.Add(imagepaths_leftimgs.Count());
+            counts.Add(imagepaths_rightimgs.Count());
+            counts.Add(imagepaths_centerimgs.Count());
+
+            tbarImage.Maximum = counts.Min();
+
 
             img1Index = 0;
             img2Index = 0;
@@ -686,52 +709,6 @@ namespace inspectionUI
             //lblImagePath.Text = imagepaths[imageIndex];
             lblCurrentPosition.Text = imageIndex.ToString();
 
-
-            // old below...
-
-            //imagepaths = new List<string>();
-
-            //int count = 0;
-            //foreach (string imageFileName in Directory.GetFiles(inputImageFolder, searchPattern: "*.jpg")) //bmp files are huge!
-            //{
-            //    string name = Path.GetFileNameWithoutExtension(imageFileName);
-
-            //    imagepaths.Add(imageFileName);
-
-            //    count++;
-
-            //}
-
-            //imageIndex = 0;
-            //totalImages = count;
-
-            //originalImage = new Bitmap(imagepaths[imageIndex]);
-
-            //pictureBox1.Image = originalImage;
-            //pictureBox2.Image = originalImage;
-            //pictureBox3.Image = originalImage;
-
-            //image_path = imagepaths[imageIndex];
-
-            //w = originalImage.Width;
-            //h = originalImage.Height;
-
-            //lblTotalCount.Text = count.ToString();
-            //lblImagePath.Text = imagepaths[imageIndex];
-            //lblCurrentPosition.Text = imageIndex.ToString();
-
-            //// resize 
-
-            //s = 0.25;
-            //hn = Convert.ToInt16(s * h);
-            //wn = Convert.ToInt16(s * w);
-
-            //pictureBox1.Image = ZoomPicture(originalImage, new Size(wn, hn));
-            //pictureBox2.Image = ZoomPicture(originalImage, new Size(wn, hn));
-            //pictureBox3.Image = ZoomPicture(originalImage, new Size(wn, hn));
-
-
-            // enable toggle buttons
             btnPrevious.Enabled = true;
             btnNext.Enabled = true;
 
@@ -739,73 +716,11 @@ namespace inspectionUI
         }
 
 
-        public void loadDefects(string inputImageFolder)
-        {
-            r = Rectangle.Empty;
-            pictureBox1.Image = null;
-
-            // load folder of images, this will be automatic when user hits retrain
-            // make objects
-
-            List<Defect> defectList = new List<Defect>();
-            List<string> labels = new List<string>();
-
-            int count = 0;
-            foreach (string imageFileName in Directory.GetFiles(inputImageFolder, "*.jpg"))
-            {
-                string name = Path.GetFileNameWithoutExtension(imageFileName);
-                string[] x = name.Split(' ');
-
-                if (x.Length ==1) // do not add larger scans...
-                {
-                    string label = x[x.Length - 1];
-
-                    System.Drawing.Image img = System.Drawing.Image.FromFile(imageFileName);
-
-                    int w = img.Width;
-                    int h = img.Height;
-
-                    Defect def = new Defect();
-
-                    def.imagePath = imageFileName;
-                    def.rect = Rectangle.Empty;
-                    def.label = label;
-                    def.height = h;
-                    def.width = w;
-                    defectList.Add(def);
-                    count++;
-
-                    labels.Add(label);
-                }
-
-            }
-
-            // enable toggle buttons
-            btnPrevious.Enabled = true;
-            btnNext.Enabled = true;
-
-            // populate instance defect list
-            _loadedDefects = defectList;
-            _imageIndex = 0;
-
-            // update combobox with unique defect classes
-            //HashSet<string> uniqueLabels = new HashSet<string>(labels);
-            //cmbxLabel.Items.AddRange(uniqueLabels.ToArray());
-
-            // show first defect
-            if (_loadedDefects.Count() > 0) { pictureBox1.Image = new Bitmap(_loadedDefects[_imageIndex].imagePath); }
-            //updateLabels(_imageIndex);
-
-            //Refresh();
-        }
-
         void LoadInputImageFolder(string inputImageFolder)
         {
             r = Rectangle.Empty;
             btnLoadFolder.Enabled = true;
             txbxInputImageFolder.Enabled = false;
-            //btnMakeXML.Enabled = true;
-            //cmbxLabel.Enabled = true;
         }
 
         public void btnLoadFolder_Click(object sender, EventArgs e)
@@ -836,7 +751,9 @@ namespace inspectionUI
 
             //clear previous image and data
             r = Rectangle.Empty;
-            pbox.Invalidate();
+            pbox.Image.Dispose(); // dispose old img.
+            pbox.Image = null;
+            GC.Collect(); // take out the trash.
 
             Graphics g = pbox.CreateGraphics();
             g.Clear(pbox.BackColor);
@@ -848,19 +765,29 @@ namespace inspectionUI
 
             if (camera == "left")
             {
-                originalImage = new Bitmap(imagepaths_leftimgs[imageIndex]);
+                if (imageIndex < imagepaths_leftimgs.Count)
+                {
+                    originalImage = new Bitmap(imagepaths_leftimgs[imageIndex]);
+                }
             }
 
 
             if (camera == "right")
             {
-                originalImage = new Bitmap(imagepaths_rightimgs[imageIndex]);
+                if (imageIndex < imagepaths_rightimgs.Count)
+                {
+                    originalImage = new Bitmap(imagepaths_rightimgs[imageIndex]);
+                }
+              
             }
 
 
             if (camera == "center")
             {
-                originalImage = new Bitmap(imagepaths_centerimgs[imageIndex]);
+                if (imageIndex < imagepaths_centerimgs.Count)
+                {
+                    originalImage = new Bitmap(imagepaths_centerimgs[imageIndex]);
+                }
             }
 
             pbox.Image = originalImage;
@@ -871,21 +798,39 @@ namespace inspectionUI
             g.Clear(pbox.BackColor);
             hn = Convert.ToInt16(s * h);
             wn = Convert.ToInt16(s * w);
-            pbox.Image = ZoomPicture(originalImage, new Size(wn, hn));
+
+            Image image2show = ZoomPicture(originalImage, new Size(wn, hn));
+
+            if (bolInvertImage)
+            {
+                
+                Image image2showInverted = InvertMyImage(image2show);
+                pbox.Image = image2showInverted;
+            }
+
+            else
+            {
+                pbox.Image = image2show;
+            }
+
             pbox.Update();
 
             //lblImagePath.Text = imagepaths[imageIndex];
-            //image_path = imagepaths[imageIndex];
             lblCurrentPosition.Text = imageIndex.ToString();
 
             int newVal = Convert.ToInt32(s * tbarZoom.Maximum);
 
-            tbarZoom.Maximum = newVal;
+            if (newVal >= tbarZoom.Maximum)
+            {
+                tbarZoom.Maximum = newVal;
+            }
 
             tbarZoom.Value = Convert.ToInt32(newVal); // adjust trackbar to center
             lblZoomVal.Text = s.ToString();
 
             pbox.Refresh();
+
+            g = null;
 
             //addDefects2img();
         }
@@ -1031,9 +976,9 @@ namespace inspectionUI
         {
             if (tbarZoom.Value != 0)
             {
-                pictureBox1.Image = null;
-                pictureBox2.Image = null;
-                pictureBox3.Image = null;
+                //pictureBox1.Image = null;
+                //pictureBox2.Image = null;
+                //pictureBox3.Image = null;
 
                 double v = Convert.ToDouble(tbarZoom.Value);
                 double m = Convert.ToDouble(tbarZoom.Maximum);
@@ -1062,10 +1007,62 @@ namespace inspectionUI
                 hn = Convert.ToInt16(s*h);
                 wn = Convert.ToInt16(s*w);
 
+                //adjustpicturebox(pictureBox1, "center");
+                //adjustpicturebox(pictureBox2, "left");
+                //adjustpicturebox(pictureBox3, "right");
 
-                pictureBox1.Image = ZoomPicture(originalImage1, new Size(wn, hn));
-                pictureBox2.Image = ZoomPicture(originalImage2, new Size(wn, hn));
-                pictureBox3.Image = ZoomPicture(originalImage3, new Size(wn, hn));
+                originalImage2 = new Bitmap(imagepaths_leftimgs[imageIndex]);
+                originalImage3 = new Bitmap(imagepaths_rightimgs[imageIndex]);
+                originalImage1 = new Bitmap(imagepaths_centerimgs[imageIndex]);
+
+                pictureBox1.Image.Dispose();
+                pictureBox2.Image.Dispose();
+                pictureBox3.Image.Dispose();
+
+
+                pictureBox1.Image = null;
+                pictureBox2.Image = null;
+                pictureBox3.Image = null;
+
+                GC.Collect(); // take out the trash.
+
+                // inverted images?
+
+                //pictureBox1.Image = ZoomPicture(originalImage1, new Size(wn, hn));
+                //pictureBox2.Image = ZoomPicture(originalImage2, new Size(wn, hn));
+                //pictureBox3.Image = ZoomPicture(originalImage3, new Size(wn, hn));
+
+                Image image2show1 = ZoomPicture(originalImage1, new Size(wn, hn));
+                Image image2show2 = ZoomPicture(originalImage2, new Size(wn, hn));
+                Image image2show3 = ZoomPicture(originalImage3, new Size(wn, hn));
+
+                if (bolInvertImage)
+                {
+
+                    Image image2showInverted1 = InvertMyImage(image2show1);
+                    Image image2showInverted2 = InvertMyImage(image2show2);
+                    Image image2showInverted3 = InvertMyImage(image2show3);
+
+                    pictureBox1.Image = image2showInverted1;
+                    pictureBox2.Image = image2showInverted2;
+                    pictureBox3.Image = image2showInverted3;
+                }
+
+                else
+                {
+                    pictureBox1.Image = image2show1;
+                    pictureBox2.Image = image2show2;
+                    pictureBox3.Image = image2show3;
+                }
+
+                pictureBox1.Update();
+                pictureBox2.Update();
+                pictureBox3.Update();
+
+                pictureBox1.Refresh();
+                pictureBox2.Refresh();
+                pictureBox3.Refresh();
+
 
                 lblZoomVal.Text = s.ToString();
                 //MessageBox.Show("new image size: " + hn.ToString() + " " + wn.ToString());
@@ -1218,21 +1215,6 @@ namespace inspectionUI
 
         }
 
-        private void panel1_Scroll(object sender, ScrollEventArgs e)
-        {
-
-            //panel2.AutoScrollPosition = new Point(panel1.AutoScrollPosition.X, panel1.AutoScrollPosition.Y);
-            //panel3.AutoScrollPosition = new Point(panel1.AutoScrollPosition.X, panel1.AutoScrollPosition.Y);
-
-            //panel2.Update();
-            //panel3.Update();  
-
-
-            // picture is redrawn, update picturebox accordingly.
-
-            //addDefects2img();
-        }
-
         private void panel1_MouseClick(object sender, MouseEventArgs e)
         {
             //addDefects2img();
@@ -1262,53 +1244,15 @@ namespace inspectionUI
 
         private void tbarImage_Scroll(object sender, EventArgs e)
         {
-            imageIndex = imageIndex + tbarImage.Value; ;
+            //imageIndex = imageIndex + tbarImage.Value; 
+
+            imageIndex = tbarImage.Value;
 
             adjustpicturebox(pictureBox1, "center");
             adjustpicturebox(pictureBox2, "left");
             adjustpicturebox(pictureBox3, "right");
 
             Refresh();
-
-            //// move on to the next image
-
-            //int newImage = tbarImage.Value;
-
-            //if (newImage >= (totalImages - 1)) { return; }
-
-            //pictureBox1.Invalidate();
-
-            //Graphics g = pictureBox1.CreateGraphics();
-            //g.Clear(pictureBox1.BackColor);
-            //pictureBox1.Update();
-
-
-            //originalImage = new Bitmap(imagepaths[newImage]);
-
-            //image_path = imagepaths[imageIndex];
-
-            //pictureBox1.Image = originalImage;
-
-            //w = originalImage.Width;
-            //h = originalImage.Height;
-
-            //g.Clear(pictureBox1.BackColor);
-            ////s = 0.25;
-            //hn = Convert.ToInt16(s * h);
-            //wn = Convert.ToInt16(s * w);
-            //pictureBox1.Image = ZoomPicture(originalImage, new Size(wn, hn));
-            //pictureBox1.Update();
-
-            //lblImagePath.Text = imagepaths[imageIndex];
-            //lblCurrentPosition.Text = imageIndex.ToString();
-
-            //tbarZoom.Value = 25; // adjust trackbar to center
-            //lblZoomVal.Text = "1";
-
-            //imageIndex = newImage;
-            //lblCurrentPosition.Text = imageIndex.ToString();
-
-            //addDefects2img();
         }
 
 
@@ -1320,20 +1264,106 @@ namespace inspectionUI
 
         private void panel3_Scroll(object sender, ScrollEventArgs e)
         {
-            //panel1.AutoScrollPosition = new Point(panel3.AutoScrollPosition.X, panel3.AutoScrollPosition.Y);
-            //panel2.AutoScrollPosition = new Point(panel3.AutoScrollPosition.X, panel3.AutoScrollPosition.Y);
 
-            //panel1.Update();
-            //panel2.Update();
+            if (bolSyncBars)
+            {
+                panel1.AutoScrollPosition = new Point(panel3.AutoScrollPosition.X, panel3.AutoScrollPosition.Y);
+                panel2.AutoScrollPosition = new Point(panel3.AutoScrollPosition.X, panel3.AutoScrollPosition.Y);
+
+                panel1.Update();
+                panel2.Update();
+            }
+
         }
 
         private void panel2_Scroll(object sender, ScrollEventArgs e)
         {
-            //panel1.AutoScrollPosition = new Point(panel2.AutoScrollPosition.X, panel2.AutoScrollPosition.Y);
-            //panel3.AutoScrollPosition = new Point(panel2.AutoScrollPosition.X, panel2.AutoScrollPosition.Y);
+            if (bolSyncBars)
+            {
+                panel1.AutoScrollPosition = new Point(panel2.AutoScrollPosition.X, panel2.AutoScrollPosition.Y);
+                panel3.AutoScrollPosition = new Point(panel2.AutoScrollPosition.X, panel2.AutoScrollPosition.Y);
 
-            //panel1.Update();
-            //panel3.Update();
+                panel1.Update();
+                panel3.Update();
+            }
+        }
+
+        private void panel1_Scroll(object sender, ScrollEventArgs e)
+        {
+            if (bolSyncBars)
+            {
+                panel2.AutoScrollPosition = new Point(panel1.AutoScrollPosition.X, panel1.AutoScrollPosition.Y);
+                panel3.AutoScrollPosition = new Point(panel1.AutoScrollPosition.X, panel1.AutoScrollPosition.Y);
+
+                panel2.Update();
+                panel3.Update();
+            }
+
+
+
+
+            // picture is redrawn, update picturebox accordingly.
+
+            //addDefects2img();
+        }
+
+        private void cxbxSnycScrollbars_CheckedChanged(object sender, EventArgs e)
+        {
+            if (cxbxSnycScrollbars.Checked)
+            {
+                bolSyncBars = true;
+            }
+            else
+            {
+                bolSyncBars = false;
+            }
+        }
+
+        public void txbxPipeID_TextChanged(object sender, EventArgs e)
+        {
+            pipeID = txbxPipeID.Text;
+        }
+
+        public void cxbxInvertImages_CheckedChanged(object sender, EventArgs e)
+        {
+         
+            if (cxbxInvertImages.Checked)
+            {
+                MessageBox.Show("Images will be inverted. Please note this computationally intensive and will slow performance.");
+                bolInvertImage = true;
+            }
+
+            else
+            {
+                bolInvertImage = false;
+            }
+
+            adjustpicturebox(pictureBox1, "center");
+            adjustpicturebox(pictureBox2, "left");
+            adjustpicturebox(pictureBox3, "right");
+
+            Refresh();
+        }
+
+        public Image InvertMyImage(Image inputImage)
+        {
+            Bitmap bmp = new Bitmap(inputImage);
+
+            for (int x = 0; x < bmp.Width; x++) 
+            {
+                for (int y = 0; y < bmp.Height; y++) 
+                {
+                    Color c = bmp.GetPixel(x, y);
+
+                    Color invertedColor = Color.FromArgb(255 - c.R, 255 - c.G, 255 - c.B);
+
+                    bmp.SetPixel(x,y, invertedColor);
+                }
+            }
+
+            Image invertedImage = (Image)bmp;
+            return invertedImage;
+
         }
     }
 
