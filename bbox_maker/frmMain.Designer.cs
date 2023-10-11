@@ -175,7 +175,7 @@
             this.dataGridView1.RowHeadersDefaultCellStyle = dataGridViewCellStyle1;
             this.dataGridView1.RowHeadersWidth = 51;
             this.dataGridView1.RowTemplate.Height = 24;
-            this.dataGridView1.Size = new System.Drawing.Size(2762, 403);
+            this.dataGridView1.Size = new System.Drawing.Size(3230, 403);
             this.dataGridView1.TabIndex = 28;
             this.dataGridView1.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
             this.dataGridView1.SelectionChanged += new System.EventHandler(this.dataGridView1_SelectionChanged);
@@ -205,7 +205,7 @@
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(620, 2294);
+            this.label2.Location = new System.Drawing.Point(762, 2259);
             this.label2.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(133, 37);
@@ -327,10 +327,10 @@
             // btnDefectDetector
             // 
             this.btnDefectDetector.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnDefectDetector.Location = new System.Drawing.Point(2644, 2237);
+            this.btnDefectDetector.Location = new System.Drawing.Point(4039, 2558);
             this.btnDefectDetector.Margin = new System.Windows.Forms.Padding(6);
             this.btnDefectDetector.Name = "btnDefectDetector";
-            this.btnDefectDetector.Size = new System.Drawing.Size(418, 59);
+            this.btnDefectDetector.Size = new System.Drawing.Size(447, 59);
             this.btnDefectDetector.TabIndex = 36;
             this.btnDefectDetector.Text = "Use Defect Detector";
             this.btnDefectDetector.UseVisualStyleBackColor = true;
@@ -339,7 +339,7 @@
             // btnMakeReport
             // 
             this.btnMakeReport.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnMakeReport.Location = new System.Drawing.Point(3082, 2237);
+            this.btnMakeReport.Location = new System.Drawing.Point(4039, 2651);
             this.btnMakeReport.Margin = new System.Windows.Forms.Padding(6);
             this.btnMakeReport.Name = "btnMakeReport";
             this.btnMakeReport.Size = new System.Drawing.Size(447, 59);

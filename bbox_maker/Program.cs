@@ -1,4 +1,5 @@
-﻿using System;
+﻿using bbox_maker;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,7 +18,9 @@ namespace inspectionUI
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            Application.Run(new frmMain(""));
+            //Application.Run(new frmMain(""));
+            Application.Run(new frmProjectFolder());
+
         }
     }
 }

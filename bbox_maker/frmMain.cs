@@ -1,4 +1,5 @@
 ﻿//using inspectionUI.Lib;
+using bbox_maker;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -120,6 +121,10 @@ namespace inspectionUI
             table = new DataTable();
             //tbarZoom.Value = 1;
             //lblZoomVal.Text = tbarZoom.Value.ToString();
+
+            frmProjectFolder form = new frmProjectFolder();
+            form.FormClosed += new FormClosedEventHandler(frmSelectProject_FormClosed);
+            form.Show();
 
         }
 
@@ -348,6 +353,11 @@ namespace inspectionUI
 
                 }
             }
+        }
+
+        private void frmSelectProject_FormClosed(object sender, FormClosedEventArgs e)
+        {
+
         }
 
         private void frmAddDefect_FormClosed(object sender, FormClosedEventArgs e)
@@ -838,17 +848,40 @@ namespace inspectionUI
         public void btnPrevious_Click(object sender, EventArgs e)
         {
 
-            // cam0 - left
-            // cam1 - right
-            // cam2 - center
+            if (tbarImage.Value - 1 >= 0)
+            {
+                // cam0 - left
+                // cam1 - right
+                // cam2 - center
 
-            imageIndex--;
+                imageIndex--;
 
-            adjustpicturebox(pictureBox1, "center");
-            adjustpicturebox(pictureBox2, "left");
-            adjustpicturebox(pictureBox3, "right");
+                tbarImage.Value = tbarImage.Value - 1;
 
-            Refresh();
+
+
+                adjustpicturebox(pictureBox1, "center");
+                adjustpicturebox(pictureBox2, "left");
+                adjustpicturebox(pictureBox3, "right");
+
+                Refresh();
+            }
+
+            //// cam0 - left
+            //// cam1 - right
+            //// cam2 - center
+
+            //imageIndex--;
+
+            //tbarImage.Value = tbarImage.Value - 1;
+
+
+
+            //adjustpicturebox(pictureBox1, "center");
+            //adjustpicturebox(pictureBox2, "left");
+            //adjustpicturebox(pictureBox3, "right");
+
+            //Refresh();
 
         }
 
@@ -856,84 +889,25 @@ namespace inspectionUI
         {
             imageIndex++;
 
-            adjustpicturebox(pictureBox1, "center");
-            adjustpicturebox(pictureBox2, "left");
-            adjustpicturebox(pictureBox3, "right");
+            if (imageIndex <= totalImages)
+            {
+                //
+                tbarImage.Value = tbarImage.Value + 1;
 
-            Refresh();
+                adjustpicturebox(pictureBox1, "center");
+                adjustpicturebox(pictureBox2, "left");
+                adjustpicturebox(pictureBox3, "right");
 
-            //if (imageIndex >= (totalImages - 1)) { return; }
+                Refresh();
+            }
 
-            ////clear previous image and data
-            ////r = Rectangle.Empty;
-            //pictureBox1.Invalidate();
+            //tbarImage.Value = tbarImage.Value + 1;
 
-            //Graphics g = pictureBox1.CreateGraphics();
-            //g.Clear(pictureBox1.BackColor);
-            //pictureBox1.Update();
+            //adjustpicturebox(pictureBox1, "center");
+            //adjustpicturebox(pictureBox2, "left");
+            //adjustpicturebox(pictureBox3, "right");
 
-
-            ////pictureBox1.Image = ZoomPicture(g, new Size(wn, hn));
-            ////pictureBox1.Update();
-
-            //// resize 
-            //pictureBox1.Invalidate();
-
-            ////Graphics g = pictureBox1.CreateGraphics();
-
-
-
-            //imageIndex++;
-
-            ////Defect newDef = _loadedDefects[_imageIndex];
-            ////string pathy = newDef.imagePath;
-
-            ////pictureBox1.Image = new Bitmap(imagepaths[imageIndex]);
-
-            //originalImage = new Bitmap(imagepaths[imageIndex]);
-
-            //image_path = imagepaths[imageIndex];
-
-            //pictureBox1.Image = originalImage;
-
-            //w = originalImage.Width;
-            //h = originalImage.Height;
-
-            //g.Clear(pictureBox1.BackColor);
-            ////s = 0.25;
-            //hn = Convert.ToInt16(s * h);
-            //wn = Convert.ToInt16(s * w);
-            //pictureBox1.Image = ZoomPicture(originalImage, new Size(wn, hn));
-            //pictureBox1.Update();
-
-            //lblImagePath.Text = imagepaths[imageIndex];
-            //lblCurrentPosition.Text = imageIndex.ToString();
-
-            //tbarZoom.Value = 25; // adjust trackbar to center
-            //lblZoomVal.Text = "1";
-            ////h = pictureBox1.Image.Height;
-            ////w = pictureBox1.Image.Width;
-
-            ////updateLabels(_imageIndex);
-
-            //addDefects2img();
-            ////Refresh();
-
-            ////if (newDef.isNeedsBox)
-            ////{
-            ////    pictureBox1.Image = new Bitmap(pathy);
-            ////    updateLabels(_imageIndex);
-            ////    Refresh();
-            ////}
-
-            ////else
-            ////{
-            ////    g = Graphics.FromImage(pictureBox1.Image);
-            ////    pictureBox1.Image = new Bitmap(pathy);
-            ////    //g.DrawRectangle(Pens.Red, newDef.rect);
-            ////    updateLabels(_imageIndex);
-            ////    Refresh();
-            ////}
+            //Refresh();
         }
 
         private void btnBrowse_Click(object sender, EventArgs e)
@@ -1027,10 +1001,6 @@ namespace inspectionUI
                 GC.Collect(); // take out the trash.
 
                 // inverted images?
-
-                //pictureBox1.Image = ZoomPicture(originalImage1, new Size(wn, hn));
-                //pictureBox2.Image = ZoomPicture(originalImage2, new Size(wn, hn));
-                //pictureBox3.Image = ZoomPicture(originalImage3, new Size(wn, hn));
 
                 Image image2show1 = ZoomPicture(originalImage1, new Size(wn, hn));
                 Image image2show2 = ZoomPicture(originalImage2, new Size(wn, hn));
