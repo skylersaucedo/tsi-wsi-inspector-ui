@@ -115,16 +115,10 @@ namespace inspectionUI
             imageIndex = 1;
             lblCurrentPosition.Text = imageIndex.ToString();    
 
-            //pictureBox1.SetStyle(ControlStyles.Selectable, true);
             Inspector = txbxInspector.Text;
 
             table = new DataTable();
-            //tbarZoom.Value = 1;
-            //lblZoomVal.Text = tbarZoom.Value.ToString();
 
-            frmProjectFolder form = new frmProjectFolder();
-            form.FormClosed += new FormClosedEventHandler(frmSelectProject_FormClosed);
-            form.Show();
 
         }
 
@@ -132,7 +126,7 @@ namespace inspectionUI
         {
             s = 0.19;//0.15; // trying to conserve memory, 0.19 ideal
             lblZoomVal.Text = s.ToString();
-            thickness = 3;
+            thickness = 3; // thickness of box line when user selects defect.
             tbarZoom.Maximum = 100;
 
             pipeID = txbxPipeID.Text;
@@ -149,7 +143,6 @@ namespace inspectionUI
                 addDefects2img();
 
                 // invoke ML server.. Add new warm up image, old one takes too long
-
                 //_ = Task.Factory.StartNew(() => { ActivateMLserver(); });   // activate MLserver
 
             }
@@ -161,8 +154,6 @@ namespace inspectionUI
 
         void ActivateMLserver()
         {
-            //_cTokenSrc = new CancellationTokenSource();
-
             try
             {
                 var pyStartInfo = new ProcessStartInfo(); // run the python script
@@ -185,6 +176,34 @@ namespace inspectionUI
                 Console.WriteLine("DEFECT DETECTOR ML SERVER ERROR!" + e.Message);
                 Environment.Exit(1);
             }
+        }
+
+        void MakeInspectionReport()
+        {
+            string inspectionGenPyPath = @"C:\Users\TSI\source\repos\tsi-wsi-inspector-ui\bbox_maker\make_inspection_report.py";
+            try
+            {
+                var pyStartInfo = new ProcessStartInfo(); // run the python script
+                pyStartInfo.FileName = pythonEnvPath;
+                pyStartInfo.UseShellExecute = false;
+                pyStartInfo.CreateNoWindow = false; //true before, we are debugging right now...
+                pyStartInfo.RedirectStandardOutput = false; //true before
+                pyStartInfo.RedirectStandardError = false; //true before
+                pyStartInfo.Arguments = $"\"{inspectionGenPyPath}\"";
+
+                using (var pythonProcess = Process.Start(pyStartInfo))
+                {
+                    _pythonProcess = pythonProcess;
+                    pythonProcess.WaitForExit();
+                }
+            }
+            catch (System.Exception e)
+            {
+                MessageBox.Show("Error: " + e.Message, "Unable to generate report"); // not sure what to anticpate here just yet...
+                Console.WriteLine("ERROR unable to gen report!" + e.Message);
+                Environment.Exit(1);
+            }
+
         }
 
         public static string FindDirectory(string currentDirectory, string targetDirectory)
@@ -294,14 +313,6 @@ namespace inspectionUI
             {
                 r = GetDraggedRect();
                 _mouseIsDown = false;
-
-                //_loadedDefects[_imageIndex].rect = r;
-
-                //updateLabels(_imageIndex);
-                //Refresh();
-
-                //DrawRectangle(Pens.Red, r);
-
 
 
                 DialogResult result = MessageBox.Show("Adding a Defect?", "Add defect?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
@@ -858,31 +869,12 @@ namespace inspectionUI
 
                 tbarImage.Value = tbarImage.Value - 1;
 
-
-
                 adjustpicturebox(pictureBox1, "center");
                 adjustpicturebox(pictureBox2, "left");
                 adjustpicturebox(pictureBox3, "right");
 
                 Refresh();
             }
-
-            //// cam0 - left
-            //// cam1 - right
-            //// cam2 - center
-
-            //imageIndex--;
-
-            //tbarImage.Value = tbarImage.Value - 1;
-
-
-
-            //adjustpicturebox(pictureBox1, "center");
-            //adjustpicturebox(pictureBox2, "left");
-            //adjustpicturebox(pictureBox3, "right");
-
-            //Refresh();
-
         }
 
         public void btnNext_Click(object sender, EventArgs e)
@@ -901,13 +893,6 @@ namespace inspectionUI
                 Refresh();
             }
 
-            //tbarImage.Value = tbarImage.Value + 1;
-
-            //adjustpicturebox(pictureBox1, "center");
-            //adjustpicturebox(pictureBox2, "left");
-            //adjustpicturebox(pictureBox3, "right");
-
-            //Refresh();
         }
 
         private void btnBrowse_Click(object sender, EventArgs e)
@@ -1178,6 +1163,7 @@ namespace inspectionUI
         private void btnMakeReport_Click(object sender, EventArgs e)
         {
             MessageBox.Show("Generating Inspection Report... Please wait a momment... Press OK to proceed.");
+            MakeInspectionReport();
         }
 
         private void lblZoomVal_Click(object sender, EventArgs e)
@@ -1237,8 +1223,11 @@ namespace inspectionUI
 
             if (bolSyncBars)
             {
-                panel1.AutoScrollPosition = new Point(panel3.AutoScrollPosition.X, panel3.AutoScrollPosition.Y);
-                panel2.AutoScrollPosition = new Point(panel3.AutoScrollPosition.X, panel3.AutoScrollPosition.Y);
+                panel1.HorizontalScroll.Value = panel3.HorizontalScroll.Value;
+                panel2.HorizontalScroll.Value = panel3.HorizontalScroll.Value;
+
+                panel1.VerticalScroll.Value = panel3.VerticalScroll.Value;
+                panel2.VerticalScroll.Value = panel3.VerticalScroll.Value;
 
                 panel1.Update();
                 panel2.Update();
@@ -1250,8 +1239,11 @@ namespace inspectionUI
         {
             if (bolSyncBars)
             {
-                panel1.AutoScrollPosition = new Point(panel2.AutoScrollPosition.X, panel2.AutoScrollPosition.Y);
-                panel3.AutoScrollPosition = new Point(panel2.AutoScrollPosition.X, panel2.AutoScrollPosition.Y);
+                panel1.HorizontalScroll.Value = panel2.HorizontalScroll.Value;
+                panel3.HorizontalScroll.Value = panel2.HorizontalScroll.Value;
+
+                panel1.VerticalScroll.Value = panel2.VerticalScroll.Value;
+                panel3.VerticalScroll.Value = panel2.VerticalScroll.Value;
 
                 panel1.Update();
                 panel3.Update();
@@ -1262,8 +1254,11 @@ namespace inspectionUI
         {
             if (bolSyncBars)
             {
-                panel2.AutoScrollPosition = new Point(panel1.AutoScrollPosition.X, panel1.AutoScrollPosition.Y);
-                panel3.AutoScrollPosition = new Point(panel1.AutoScrollPosition.X, panel1.AutoScrollPosition.Y);
+                panel2.HorizontalScroll.Value = panel1.HorizontalScroll.Value;
+                panel3.HorizontalScroll.Value = panel1.HorizontalScroll.Value;
+
+                panel2.VerticalScroll.Value = panel1.VerticalScroll.Value;
+                panel3.VerticalScroll.Value = panel1.VerticalScroll.Value;
 
                 panel2.Update();
                 panel3.Update();

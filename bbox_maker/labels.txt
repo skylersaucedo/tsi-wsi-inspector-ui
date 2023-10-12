@@ -10,3 +10,7 @@ debris
 paint
 fff
 new guy
+target
+rust
+wtf
+somethingNEW

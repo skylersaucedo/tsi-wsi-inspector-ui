@@ -36,6 +36,33 @@ namespace bbox_maker
 
             // check to see if .bmps are present
 
+            string[] bmpFiles = Directory.GetFiles(inputImageFolder, "*.bmp");
+
+            if (bmpFiles.Length > 0)
+            {
+                //Console.WriteLine(format: "There are {0} .bmp files in the directory.", bmpFiles.Length);
+                MessageBox.Show(String.Format("There are {0} .bmp files in the directory.", bmpFiles.Length));
+            }
+            else
+            {
+                //Console.WriteLine("There are no .bmp files in the directory.");
+                MessageBox.Show("There are no .bmp files in the directory.");
+
+
+                DialogResult result = MessageBox.Show("Make Stills?", "Make stills?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (result == DialogResult.Yes)
+                {
+                    MessageBox.Show("making stills...");
+                }
+                else if (result == DialogResult.No)
+                {
+                    MessageBox.Show("NOT making stills...");
+                }
+
+            }
+
+
+
             // check to see if file structure is present
 
             // if not, ask user. 

@@ -107,6 +107,8 @@
   <ItemGroup>
     <Content Include="labels.txt" />
     <Content Include="defectslog.txt" />
+    <Content Include="logoTUBES.png" />
+    <Content Include="make_inspection_report.py" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

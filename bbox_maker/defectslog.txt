@@ -1,6 +1,12 @@
-index, datetime, image_path, h, w, inspector, defect, loc_x, loc_y, def_h, def_w, notes, image_index, pipe_ID;
-6,10/10/2023 9:41:31 AM,C:\Users\TSI\Desktop\oct-7\center\392_img.jpg,4912,3684,M. Salamanca,fff,500,1663,1058,1000,sssss, 392, GTssss
-7,10/10/2023 9:46:10 AM,C:\Users\TSI\Desktop\oct-7\center\005_img.jpg,4912,3684,M. Salamanca,new guy,268,1400,732,1368,its a guy, 5, SomePIPeID
-3,10/10/2023 11:41:15 AM,C:\Users\TSI\Desktop\oct-10\center\001_img.jpg,4912,3684,M. Salamanca,scratch,226,2232,642,537,, 1, 
-4,10/10/2023 11:42:24 AM,C:\Users\TSI\Desktop\oct-10\center\001_img.jpg,4912,3684,M. Salamanca,scratch,237,2342,468,463,testing pipe ID, 1, GT690-1001122
-5,10/10/2023 11:42:40 AM,C:\Users\TSI\Desktop\oct-10\center\001_img.jpg,4912,3684,M. Salamanca,scratch,2042,1711,842,779,pipe id?, 1, some_new_pipe
+index,datetime,image_path,h,w,inspector,defect,loc_x,loc_y,def_h,def_w,notes,image_index,pipe_ID
+6,10/12/2023 11:02:12 AM,C:\Users\TSI\Desktop\oct-10_bmp\center\006_img.bmp,4912,3684,M. Salamanca,new guy,521,1468,753,1111,Testing gen report Oct12, 6, GT690-1001122
+2,10/12/2023 11:04:34 AM,C:\Users\TSI\Desktop\oct-10_bmp\center\003_img.bmp,4912,3684,M. Salamanca,target,184,2342,400,521,Testing Gen report , 3, GT690-1001122
+3,10/12/2023 11:04:58 AM,C:\Users\TSI\Desktop\oct-10_bmp\center\007_img.bmp,4912,3684,M. Salamanca,rust,3016,2442,295,295,looks like rust, 7, GT690-1001122
+4,10/12/2023 11:05:17 AM,C:\Users\TSI\Desktop\oct-10_bmp\center\013_img.bmp,4912,3684,M. Salamanca,dent,11,2579,316,242,potential dent action here..., 13, GT690-1001122
+5,10/12/2023 11:05:37 AM,C:\Users\TSI\Desktop\oct-10_bmp\center\016_img.bmp,4912,3684,M. Salamanca,gauling,1079,1732,1247,363,looks like some shearing action on this thread., 16, GT690-1001122
+6,10/12/2023 11:05:57 AM,C:\Users\TSI\Desktop\oct-10_bmp\center\018_img.bmp,4912,3684,M. Salamanca,debris,2974,2326,505,316,looks like someone left some crap on the pipe again..., 18, GT690-1001122
+7,10/12/2023 11:06:22 AM,C:\Users\TSI\Desktop\oct-10_bmp\center\022_img.bmp,4912,3684,M. Salamanca,gauling,2800,1689,826,342,severely damaged thread , 22, GT690-1001122
+8,10/12/2023 11:07:02 AM,C:\Users\TSI\Desktop\oct-10_bmp\center\032_img.bmp,4912,3684,M. Salamanca,gauling,647,1311,2184,458,severe shearing on thread looks like it is rusted over now..., 32, GT690-1001122
+9,10/12/2023 11:09:30 AM,C:\Users\TSI\Desktop\oct-10_bmp\center\007_img.bmp,4912,3684,M. Salamanca,wtf,1263,4253,416,495,seriously you left some shit on the pipe again..., 7, GT690-1001122
+10,10/12/2023 12:47:50 PM,C:\Users\TSI\Desktop\oct-10_bmp\center\044_img.bmp,4912,3684,M. Salamanca,scratch,1605,1068,842,1389,hheeeeee, 44, GT690-1001122
+11,10/12/2023 1:31:44 PM,C:\Users\TSI\Desktop\oct-10_bmp\center\025_img.bmp,4912,3684,M. Salamanca,somethingNEW,2521,3053,758,1042,this is a new defect!, 25, GT690-1001122
