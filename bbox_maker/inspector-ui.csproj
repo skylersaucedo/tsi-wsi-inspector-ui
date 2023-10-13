@@ -105,6 +105,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="invoke_ml_model.py" />
     <Content Include="labels.txt" />
     <Content Include="defectslog.txt" />
     <Content Include="logoTUBES.png" />

@@ -1066,11 +1066,101 @@ namespace inspectionUI
         {
             MessageBox.Show("Invoking Machine Learning Model... Please wait a moment... Press OK to proceed. ");
 
-            GetDefects(image_path);
+            RunMLmodel(); // takes 35 seconds per scan :(
+
+            // read csv for defects, populate image
+
+            string csvDefectPath = @"C:\Users\TSI\Desktop\defects.csv";
+
+
+            addMLdefects2image(csvDefectPath);
+
+
+
+            // ----- uses ML server below... need to adjust 
+
+            //GetDefects(image_path);
+
+            //Stopwatch sw = new Stopwatch();
+            //sw.Start();
+
+            //string sample_image_path = @"C:\Users\TSI\Desktop\oct-10_bmp\center\005_img.bmp";
+            //string csv_path = @"C:\Users\TSI\Desktop\test.csv";
+
+            ////GetDefects(sample_image_path, csv_path);
+
+            //// Get the elapsed time as a TimeSpan
+            //TimeSpan ts = sw.Elapsed;//
+
+            //// Format and display the TimeSpan
+            //string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+            //ts.Hours, ts.Minutes, ts.Seconds,
+            //ts.Milliseconds / 10);
+            //Console.WriteLine("That took: {0}", elapsedTime);
 
         }
 
-        public void GetDefects(string imagePath)
+        public void addMLdefects2image(string csvpath)
+        {
+            if (File.Exists(csvpath))
+            {
+                string[] lines = File.ReadAllLines(csvpath);
+
+                if (lines.Length > 2) // make sure they exist
+                {
+                    for (int i = 1; i < lines.Length; i++) // first line is header
+                    {
+                        string hm_line = lines[i].Trim();
+
+                        string[] hm_vals = hm_line.Split(',');
+
+                        int x_i = Convert.ToInt32(hm_vals[1]);
+                        int y_i = Convert.ToInt32(hm_vals[2]);
+                        int x_f = Convert.ToInt32(hm_vals[3]);
+                        int y_f = Convert.ToInt32(hm_vals[4]);
+                        string label = hm_vals[5];
+
+                        Rectangle r_n = new Rectangle(x_i, y_i, x_f, y_f);
+
+                        UpdatePictureBoxWithRectangle(pictureBox1, r_n, Color.GreenYellow, thickness);
+
+
+                    }
+                }
+            }
+        }
+
+        public void RunMLmodel()
+        {
+            string mlModelPath = @"C:\Users\TSI\source\repos\tsi-wsi-inspector-ui\bbox_maker\invoke_ml_model.py";
+            string imagepath = imagepaths_centerimgs[imageIndex];
+            string csvDefectPath = @"C:\Users\TSI\Desktop\defects.csv";
+
+            try
+            {
+                var pyStartInfo = new ProcessStartInfo(); // run the python script
+                pyStartInfo.FileName = pythonEnvPath;
+                pyStartInfo.UseShellExecute = false;
+                pyStartInfo.CreateNoWindow = false; //true before, we are debugging right now...
+                pyStartInfo.RedirectStandardOutput = false; //true before
+                pyStartInfo.RedirectStandardError = false; //true before
+                pyStartInfo.Arguments = $"\"{mlModelPath}\" \"{imagepath}\" \"{csvDefectPath}\" ";
+
+                using (var pythonProcess = Process.Start(pyStartInfo))
+                {
+                    _pythonProcess = pythonProcess;
+                    pythonProcess.WaitForExit();
+                }
+            }
+            catch (System.Exception e)
+            {
+                MessageBox.Show("Error: " + e.Message, "Unable to invoke ML model!"); // not sure what to anticpate here just yet...
+                Console.WriteLine("ERROR unable invoke ML model!" + e.Message);
+                Environment.Exit(1);
+            }
+        }
+
+        public void GetDefects(string imagePath, string csvpath)
         {
             // USES TCP-IP PROTOCOL FOR .NET 4.8 FRAMEWORK. 
             // AVOIDS USING ASYNC TASKS, TO PRESERVE OBJECT CHARACTERISTICS of GetDefects. 
@@ -1078,7 +1168,7 @@ namespace inspectionUI
             //var imagePath = Path.Combine(C.TEMP_DIR, $"dd-{DateTime.Now.ToString("yyddMMhhmmss")}.jpg");
             //bitmap.SaveAsJpg(imagePath);
 
-            string csvpath = "";
+            //string csvpath = "";
 
             //List<Defect> defects = new List<Defect>();
             //List<DefectProperties> cDefects = new List<DefectProperties>();
