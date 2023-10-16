@@ -3,9 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -15,6 +17,11 @@ namespace bbox_maker
     public partial class frmProjectFolder : Form
     {
         public string projectPath = @"\\TSI-AIO-DT01\Users\prime\Documents\scans";
+        public Process _pythonProcess;
+        public string inputImageFolder;
+
+        public static readonly string pythonEnvDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"miniconda3\envs\pytorch-gpu");
+        public static readonly string pythonEnvPath = Path.Combine(pythonEnvDir, @"python.exe");
 
         public frmProjectFolder()
         {
@@ -32,7 +39,7 @@ namespace bbox_maker
         {
             MessageBox.Show("You selected: " + comboBox1.SelectedItem.ToString());
 
-            string inputImageFolder = comboBox1.SelectedItem.ToString();
+            inputImageFolder = comboBox1.SelectedItem.ToString();
 
             // check to see if .bmps are present
 
@@ -53,27 +60,54 @@ namespace bbox_maker
                 if (result == DialogResult.Yes)
                 {
                     MessageBox.Show("making stills...");
+
+                    makeStillsfromProjectFolder(inputImageFolder);
+
+                    // now show images from new folder.
+
+                    frmMain frmMain = new frmMain(inputImageFolder);
+                    frmMain.Show();
+
+                    this.Hide(); // hide, but don't close instance.
+
                 }
                 else if (result == DialogResult.No)
                 {
-                    MessageBox.Show("NOT making stills...");
+                    MessageBox.Show("NOT making stills. Please select a project to analyze");
                 }
 
             }
 
 
+        }
 
-            // check to see if file structure is present
+        public void makeStillsfromProjectFolder(string stillsFolder)
+        {
+ 
+            string makeStillsScript = @"C:\Users\TSI\source\repos\tsi-wsi-inspector-ui\bbox_maker\make_stills.py";
 
-            // if not, ask user. 
+            try
+            {
+                var pyStartInfo = new ProcessStartInfo(); // run the python script
+                pyStartInfo.FileName = pythonEnvPath;
+                pyStartInfo.UseShellExecute = false;
+                pyStartInfo.CreateNoWindow = false; //true before, we are debugging right now...
+                pyStartInfo.RedirectStandardOutput = false; //true before
+                pyStartInfo.RedirectStandardError = false; //true before
+                pyStartInfo.Arguments = $"\"{makeStillsScript}\" \"{stillsFolder}\"";
 
-            // now generate updated project folder with labels and images 
-
-            // rename_image_stills with datetime, pipeID, pass. 
-
-            frmMain frmMain = new frmMain(inputImageFolder);
-            frmMain.Show();
-
+                using (var pythonProcess = Process.Start(pyStartInfo))
+                {
+                    _pythonProcess = pythonProcess;
+                    pythonProcess.WaitForExit();
+                }
+            }
+            catch (System.Exception e)
+            {
+                MessageBox.Show("Error: " + e.Message, "Unable to invoke ML model!"); // not sure what to anticpate here just yet...
+                Console.WriteLine("ERROR unable invoke ML model!" + e.Message);
+                Environment.Exit(1);
+            }
         }
     }
 }
