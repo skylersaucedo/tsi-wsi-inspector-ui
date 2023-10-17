@@ -6,9 +6,11 @@ import os
 import math
 import sys
 root = os.getcwd()
+import time
+
+t0 = time.time()
 print('root: ', root)
 
-import time
 import wandb
 import presets
 import torch
@@ -238,10 +240,10 @@ def plot_defects(image_path, df_defects, title_label, output_path):
 def main():
 
     mdl_path = sys.argv[0]
-    sample_image_path = sys.argv[1]
+    input_image_path = sys.argv[1]
     csv_defect_path = sys.argv[2]
 
-    #sample_image_path = r'C:\Users\TSI\Desktop\oct-10_bmp\center\005_img.bmp'
+    print('inference on image: ', input_image_path)
 
     model_path = r'C:\Users\TSI\Desktop\TSI  -object-detection-pytorch-wandb-coco\outputdir\model_37_GOODONE.pth'
 
@@ -277,16 +279,9 @@ def main():
     lr_scheduler = checkpoint['lr_scheduler']
     args = checkpoint['args']
 
-    print('---------------------UPDATED MODEL ----------------')
+    print('---------------------PYTORCH RETINA NET OBJ DETECTION ----------------')
 
     device = torch.device("cuda")
-
-    #holdout_ds_path = r'C:\Users\TSI\Desktop\TSI  -object-detection-pytorch-wandb-coco\holdout_ds'
-    #predictions_path = r'C:\Users\TSI\Desktop\TSI  -object-detection-pytorch-wandb-coco\holdout_trial_image-results'
-
-    #preds_path = r'C:\Users\TSI\Desktop'
-
-    #images = glob.glob(holdout_ds_path + '/*.jpg')
 
     CLASSES = ['scratch', 
             'dent', 
@@ -309,7 +304,7 @@ def main():
     # # -- resized pano by 1/2
 
     # r = 2 # resize scaling factor
-    # x_raw = cv2.imread(sample_image_path)
+    # x_raw = cv2.imread(input_image_path)
     # h, w, c = x_raw.shape
 
     # #print('shape of original image, ', np.shape(x_raw))
@@ -382,14 +377,17 @@ def main():
     # title_label = 'trying-oct13'
     # output_path = r'C:\Users\TSI\Desktop\defectresults-oct13.jpg'
 
-    # plot_defects(sample_image_path, df, title_label, output_path)
+    # plot_defects(input_image_path, df, title_label, output_path)
 
 
     # ---------- OLD TRY THIS ---------------------
     
     #print('label val: ', class_text_to_int(gt)-1)
 
-    img_r = cv2.imread(sample_image_path)
+    print('total warmup seconds: ', time.time() - t0)
+
+
+    img_r = cv2.imread(input_image_path)
     img_c = cv2.cvtColor(img_r, cv2.COLOR_BGR2RGB)
 
     img_t = img_c.transpose([2,0,1])
@@ -403,13 +401,13 @@ def main():
     img_t = img_t.to(device)
     detections = model(img_t)[0]
 
-    #print('detections: , ' ,detections)
-
     #loop over the detections
     prediction_labels = []
     prediction_vals = []
 
     preds = []
+
+    inputname = input_image_path.split('\\')
     
     for i in range(0, len(detections["boxes"])):
         confidence = detections["scores"][i]
@@ -436,18 +434,28 @@ def main():
             cv2.putText(img_c, label, (startX, y),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, COLORS[idx-1], 5)
             
-            preds.append([startX, startY, endX, endY, label])
+            preds.append([inputname[-1],startX, startY, endX, endY, CLASSES[idx-1], float(confidence * 100)])
             
     print(' [PREDICTIONS: ]', prediction_labels, prediction_vals)
+
+    t1 = time.time()
+    total_time = t1-t0
+    print('total inference time in seconds: ', total_time)
+    defectsImgName = inputname[-1].split('.')
     plt.imshow(img_c)
+    plt.savefig(csv_defect_path + "\\"+ defectsImgName[0] + ".pdf")
     plt.show()
 
-    df = pd.DataFrame(preds,columns=["x_i","y_i","x_f", "y_f", "label"])
+
+
+    df = pd.DataFrame(preds,columns=["img_name","x_i","y_i","x_f", "y_f", "label", "confidence"])
 
     print(df)
 
     # saving the dataframe
-    df.to_csv(csv_defect_path)
+    #df.to_csv(csv_defect_path +"\\" + "defects.csv")
+    df.to_csv(csv_defect_path +"\\" + "defects" + defectsImgName[0]+ ".csv")
+
 
 if __name__ == "__main__":
     sys.exit(main())

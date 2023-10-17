@@ -1,12 +1,5 @@
 index,datetime,image_path,h,w,inspector,defect,loc_x,loc_y,def_h,def_w,notes,image_index,pipe_ID
-6,10/12/2023 11:02:12 AM,C:\Users\TSI\Desktop\oct-10_bmp\center\006_img.bmp,4912,3684,M. Salamanca,new guy,521,1468,753,1111,Testing gen report Oct12, 6, GT690-1001122
-2,10/12/2023 11:04:34 AM,C:\Users\TSI\Desktop\oct-10_bmp\center\003_img.bmp,4912,3684,M. Salamanca,target,184,2342,400,521,Testing Gen report , 3, GT690-1001122
-3,10/12/2023 11:04:58 AM,C:\Users\TSI\Desktop\oct-10_bmp\center\007_img.bmp,4912,3684,M. Salamanca,rust,3016,2442,295,295,looks like rust, 7, GT690-1001122
-4,10/12/2023 11:05:17 AM,C:\Users\TSI\Desktop\oct-10_bmp\center\013_img.bmp,4912,3684,M. Salamanca,dent,11,2579,316,242,potential dent action here..., 13, GT690-1001122
-5,10/12/2023 11:05:37 AM,C:\Users\TSI\Desktop\oct-10_bmp\center\016_img.bmp,4912,3684,M. Salamanca,gauling,1079,1732,1247,363,looks like some shearing action on this thread., 16, GT690-1001122
-6,10/12/2023 11:05:57 AM,C:\Users\TSI\Desktop\oct-10_bmp\center\018_img.bmp,4912,3684,M. Salamanca,debris,2974,2326,505,316,looks like someone left some crap on the pipe again..., 18, GT690-1001122
-7,10/12/2023 11:06:22 AM,C:\Users\TSI\Desktop\oct-10_bmp\center\022_img.bmp,4912,3684,M. Salamanca,gauling,2800,1689,826,342,severely damaged thread , 22, GT690-1001122
-8,10/12/2023 11:07:02 AM,C:\Users\TSI\Desktop\oct-10_bmp\center\032_img.bmp,4912,3684,M. Salamanca,gauling,647,1311,2184,458,severe shearing on thread looks like it is rusted over now..., 32, GT690-1001122
-9,10/12/2023 11:09:30 AM,C:\Users\TSI\Desktop\oct-10_bmp\center\007_img.bmp,4912,3684,M. Salamanca,wtf,1263,4253,416,495,seriously you left some shit on the pipe again..., 7, GT690-1001122
-10,10/12/2023 12:47:50 PM,C:\Users\TSI\Desktop\oct-10_bmp\center\044_img.bmp,4912,3684,M. Salamanca,scratch,1605,1068,842,1389,hheeeeee, 44, GT690-1001122
-11,10/12/2023 1:31:44 PM,C:\Users\TSI\Desktop\oct-10_bmp\center\025_img.bmp,4912,3684,M. Salamanca,somethingNEW,2521,3053,758,1042,this is a new defect!, 25, GT690-1001122
+6,10/12/2023 11:02:12 AM,C:\Users\TSI\Desktop\oct-10_bmp\center\006_img.bmp,4912,3684,M. Salamanca,new guy,521,1468,753,1111,Testing gen report Oct12,6,GT690-1001122
+2,10/17/2023 2:25:34 PM,C:\wsi-project-scans\20231010-112134_5_passes\RAW\PIN\pass3\cam0\stills\20231010-112134_5_passes_PIN_pass3_cam0_001_img.bmp,4912,3684,M. Salamanca,scratch,1747,1995,474,389,, 1, GT690-1001122
+3,10/17/2023 2:25:41 PM,C:\wsi-project-scans\20231010-112134_5_passes\RAW\PIN\pass3\cam2\stills\20231010-112134_5_passes_PIN_pass3_cam2_001_img.bmp,4912,3684,M. Salamanca,scratch,279,1747,537,595,, 1, GT690-1001122
+4,10/17/2023 2:26:03 PM,C:\wsi-project-scans\20231010-112134_5_passes\RAW\PIN\pass3\cam1\stills\20231010-112134_5_passes_PIN_pass3_cam1_001_img.bmp,4912,3684,M. Salamanca,scratch,563,1137,1258,1174,, 1, GT690-1001122

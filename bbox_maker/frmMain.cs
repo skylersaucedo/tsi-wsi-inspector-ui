@@ -29,11 +29,10 @@ namespace inspectionUI
         // cam2 - center
         // left and right are mixed right now... need to adjust
 
-        public string leftimages = @"C:\Users\TSI\Desktop\oct-10_bmp\right";
-        public string rightimages = @"C:\Users\TSI\Desktop\oct-10_bmp\left";
-        public string centerimages = @"C:\Users\TSI\Desktop\oct-10_bmp\center";
-        public string inputImageFolder = @"C:\Users\TSI\Desktop\oct-10_bmp\center"; // Change for HMI
-
+        public string leftimages;
+        public string rightimages;
+        public string centerimages;
+        public string inputImageFolder;
 
         public List<String> imagepaths_leftimgs;
         public List<String> imagepaths_rightimgs;
@@ -72,7 +71,12 @@ namespace inspectionUI
 
         public double s { get; set; } //scaling, zoom factor
 
-        bool _mouseIsDown = false;
+        //bool _mouseIsDown = false;
+
+        bool _mouseIsDown1 = false;
+        bool _mouseIsDown2 = false;
+        bool _mouseIsDown3 = false;
+
         bool bolSyncBars = false;
         bool bolInvertImage = false;
 
@@ -98,18 +102,21 @@ namespace inspectionUI
         public static readonly string mlDIR = @"C:\Users\TSI\source\repos\threadinspection_Aug14\UI.MachineLearning";
         public static string predictionScriptPath = Path.Combine(mlDIR, "detection_server.py");
 
+        public string inspectionGenPyPath = @"C:\Users\TSI\source\repos\tsi-wsi-inspector-ui\bbox_maker\make_inspection_report.py";
+
+
         public int hn {get;set;}
         public int wn { get; set; }
 
         public string pipeID { get; set; }  
 
 
-        public frmMain(string inputImageFolder)
+        public frmMain(string _inputImageFolder)
         {
-            //inputImageFolder = @"C:\Users\TSI\Desktop\oct-7";
-
+            inputImageFolder = _inputImageFolder;
 
             InitializeComponent();
+
             txbxInputImageFolder.Text = inputImageFolder;
 
             imageIndex = 1;
@@ -118,6 +125,9 @@ namespace inspectionUI
             Inspector = txbxInspector.Text;
 
             table = new DataTable();
+
+            
+
 
 
         }
@@ -131,16 +141,37 @@ namespace inspectionUI
 
             pipeID = txbxPipeID.Text;
 
+            MessageBox.Show("Please select Pin/Box and pass number to view images from: ; " + inputImageFolder);
+
+            // populate combo boxes for user to select PIN or BOX
+
+            cxbxPassNumber.Enabled = false; // do not enable until user makes selection
+
+            string workingDIR = inputImageFolder + "\\" + "RAW";
+            string[] subdirectoryEntries = Directory.GetDirectories(workingDIR);
+
+            foreach (string subdirectory in subdirectoryEntries)
+            {
+                string[] splitme = subdirectory.Split('\\');
+                string boxOrPin = splitme.Last();
+                cxbxPINorBOX.Items.Add(boxOrPin);
+            }
+
+            
+            cxbxPINorBOX.Text = cxbxPINorBOX.Items[0].ToString(); // options avail to user.
+
+
+
             txbxInputImageFolder.Text = inputImageFolder;
             if((!string.IsNullOrWhiteSpace(inputImageFolder)) && Directory.Exists(txbxInputImageFolder.Text))
             {                
-                loadImageToPictureBox();
+                //loadImageToPictureBox();
 
-                tbarImage.Maximum = totalImages;
+                //tbarImage.Maximum = totalImages;
 
-                PopulateDataGridView();
+                //PopulateDataGridView();
 
-                addDefects2img();
+                //addDefects2img();
 
                 // invoke ML server.. Add new warm up image, old one takes too long
                 //_ = Task.Factory.StartNew(() => { ActivateMLserver(); });   // activate MLserver
@@ -180,7 +211,6 @@ namespace inspectionUI
 
         void MakeInspectionReport()
         {
-            string inspectionGenPyPath = @"C:\Users\TSI\source\repos\tsi-wsi-inspector-ui\bbox_maker\make_inspection_report.py";
             try
             {
                 var pyStartInfo = new ProcessStartInfo(); // run the python script
@@ -189,7 +219,8 @@ namespace inspectionUI
                 pyStartInfo.CreateNoWindow = false; //true before, we are debugging right now...
                 pyStartInfo.RedirectStandardOutput = false; //true before
                 pyStartInfo.RedirectStandardError = false; //true before
-                pyStartInfo.Arguments = $"\"{inspectionGenPyPath}\"";
+                pyStartInfo.Arguments = $"\"{inspectionGenPyPath}\" \"{inputImageFolder}\"";
+
 
                 using (var pythonProcess = Process.Start(pyStartInfo))
                 {
@@ -253,9 +284,9 @@ namespace inspectionUI
         public void pictureBox1_Paint(object sender, PaintEventArgs e)
         {
 
-            if (r != null && _mouseIsDown)
+            if (r != null && _mouseIsDown1)
             {
-                if (_mouseIsDown)
+                if (_mouseIsDown1)
                 {
                     Rectangle r = GetDraggedRect();
 
@@ -268,9 +299,9 @@ namespace inspectionUI
 
         private void pictureBox2_Paint(object sender, PaintEventArgs e)
         {
-            if (r != null && _mouseIsDown)
+            if (r != null && _mouseIsDown2)
             {
-                if (_mouseIsDown)
+                if (_mouseIsDown2)
                 {
                     Rectangle r = GetDraggedRect();
 
@@ -284,9 +315,9 @@ namespace inspectionUI
 
         private void pictureBox3_Paint(object sender, PaintEventArgs e)
         {
-            if (r != null && _mouseIsDown)
+            if (r != null && _mouseIsDown3)
             {
-                if (_mouseIsDown)
+                if (_mouseIsDown3)
                 {
                     Rectangle r = GetDraggedRect();
                     Pen rectPen = new Pen(Color.Red, thickness);
@@ -300,76 +331,135 @@ namespace inspectionUI
         {
             if (e.Button == MouseButtons.Left)
             {
-                _mouseIsDown = true;
-
+                _mouseIsDown1 = true;
                 _mousePositionDragStart = e.Location;
-                //txbxBboxcoords.Text += s_i.ToString();
+            }
+        }
+
+        private void pictureBox2_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                _mouseIsDown2 = true;
+                _mousePositionDragStart = e.Location;
+            }
+        }
+
+        private void pictureBox3_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                _mouseIsDown3 = true;
+                _mousePositionDragStart = e.Location;
             }
         }
 
         public void pictureBox1_MouseUp(object sender, MouseEventArgs e)
         {
-            if (_mouseIsDown)
+            if (_mouseIsDown1)
             {
                 r = GetDraggedRect();
-                _mouseIsDown = false;
+                _mouseIsDown1 = false;
 
-
-                DialogResult result = MessageBox.Show("Adding a Defect?", "Add defect?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                if (result == DialogResult.Yes)
-                {
-                    // User clicked Yes
-                    //MessageBox.Show("r is: " + r.ToString());
-                    
-                    Defect newDefect = new Defect();
-
-                    newDefect.index = totalDefects +1;
-                    newDefect.datetime = DateTime.Now.ToString();
-                    //newDefect.image_name = imagepaths[imageIndex];
-
-                    newDefect.image_name = imagepaths_centerimgs[imageIndex];
-
-                    newDefect.h = h;
-                    newDefect.w = w;
-                    newDefect.inspector = txbxInspector.Text;
-                    newDefect.defect = "tba - sept 25";
-                    
-                    // account for scaling factor
-
-                    newDefect.location_x = Convert.ToInt32(r.X / s);
-                    newDefect.location_y = Convert.ToInt32(r.Y / s);
-                    newDefect.def_h = Convert.ToInt32(r.Height / s);
-                    newDefect.def_w = Convert.ToInt32(r.Width / s);
-                    newDefect.notes = "tba - sept 25";
-                    newDefect.r = r; // r wrt scaled image
-                    newDefect.image_index = imageIndex;
-                    newDefect.pipe_id = pipeID;
-
-
-                    frmAddDefect form = new frmAddDefect(newDefect, table);
-                    // inject formclose event handler
-
-                    form.FormClosed += new FormClosedEventHandler(frmAddDefect_FormClosed);
-
-                    form.Show();
-                }
-                else if (result == DialogResult.No)
-                {
-                    // User clicked No
-                    pictureBox1.Invalidate();
-                    pictureBox2.Invalidate();
-                    pictureBox3.Invalidate();
-
-                    // you will need to add previous defects to show
-
-                }
+                addingAdefect("pbox1");
             }
         }
 
-        private void frmSelectProject_FormClosed(object sender, FormClosedEventArgs e)
+        private void pictureBox2_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (_mouseIsDown2)
+            {
+                r = GetDraggedRect();
+                _mouseIsDown2 = false;
+
+                addingAdefect("pbox2");
+            }
+        }
+
+        private void pictureBox3_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (_mouseIsDown3)
+            {
+                r = GetDraggedRect();
+                _mouseIsDown3 = false;
+
+                addingAdefect("pbox3");
+            }
+        }
+
+        public void addingAdefect(string picturebox)
         {
 
+            DialogResult result = MessageBox.Show("Adding a Defect?", "Add defect?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (result == DialogResult.Yes)
+            {
+                // User clicked Yes
+                //MessageBox.Show("r is: " + r.ToString());
+
+                Defect newDefect = new Defect();
+
+                if (picturebox == "pbox1")
+                {
+                    newDefect.image_name = imagepaths_centerimgs[imageIndex];
+                }
+
+                if (picturebox == "pbox2")
+                {
+                    newDefect.image_name = imagepaths_rightimgs[imageIndex];
+                }
+
+                if (picturebox == "pbox3")
+                {
+                    newDefect.image_name = imagepaths_leftimgs[imageIndex];
+                }
+
+                newDefect.index = totalDefects + 1;
+                newDefect.datetime = DateTime.Now.ToString();
+                //newDefect.image_name = imagepaths[imageIndex];
+
+
+                //newDefect.image_name = imagepaths_centerimgs[imageIndex];
+
+                newDefect.h = h;
+                newDefect.w = w;
+                newDefect.inspector = txbxInspector.Text;
+                newDefect.defect = "tba - sept 25";
+
+                // account for scaling factor
+
+                newDefect.location_x = Convert.ToInt32(r.X / s);
+                newDefect.location_y = Convert.ToInt32(r.Y / s);
+                newDefect.def_h = Convert.ToInt32(r.Height / s);
+                newDefect.def_w = Convert.ToInt32(r.Width / s);
+                newDefect.notes = "tba - sept 25";
+                newDefect.r = r; // r wrt scaled image
+                newDefect.image_index = imageIndex;
+                newDefect.pipe_id = pipeID;
+
+
+                frmAddDefect form = new frmAddDefect(newDefect, table);
+                // inject formclose event handler
+
+                form.FormClosed += new FormClosedEventHandler(frmAddDefect_FormClosed);
+
+                form.Show();
+            }
+            else if (result == DialogResult.No)
+            {
+                // User clicked No
+                pictureBox1.Invalidate();
+                pictureBox2.Invalidate();
+                pictureBox3.Invalidate();
+
+                // you will need to add previous defects to show
+
+            }
         }
+
+        //private void frmSelectProject_FormClosed(object sender, FormClosedEventArgs e)
+        //{
+
+        //}
 
         private void frmAddDefect_FormClosed(object sender, FormClosedEventArgs e)
         {
@@ -514,7 +604,29 @@ namespace inspectionUI
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
             // get current point of x and y
-            if (_mouseIsDown)
+            if (_mouseIsDown1)
+            {
+                _mousePositionDragged = e.Location;
+                r = GetDraggedRect();
+                Refresh();
+            }
+        }
+
+        private void pictureBox3_MouseMove(object sender, MouseEventArgs e)
+        {
+            // get current point of x and y
+            if (_mouseIsDown3)
+            {
+                _mousePositionDragged = e.Location;
+                r = GetDraggedRect();
+                Refresh();
+            }
+        }
+
+        private void pictureBox2_MouseMove(object sender, MouseEventArgs e)
+        {
+            // get current point of x and y
+            if (_mouseIsDown2)
             {
                 _mousePositionDragged = e.Location;
                 r = GetDraggedRect();
@@ -647,9 +759,7 @@ namespace inspectionUI
 
         public List<string> populateImageList(string inputFolder)
         {
-            //string ext = "*.jpg";
             string ext = "*.bmp";
-            //string ext = "*.png";
 
             List<string> outList = new List<string>();
             foreach (string imageFileName in Directory.GetFiles(inputFolder, searchPattern: ext)) //bmp files are huge!
@@ -662,6 +772,7 @@ namespace inspectionUI
 
         public void loadImageToPictureBox()
         {
+            // TODO: There is some confusion below about left/right/center and images assigned to pboxes...  NEED TO CLEAN THIS UP!
             //s = 0.25; // mag factor
 
             r = Rectangle.Empty;
@@ -737,34 +848,34 @@ namespace inspectionUI
         }
 
 
-        void LoadInputImageFolder(string inputImageFolder)
-        {
-            r = Rectangle.Empty;
-            btnLoadFolder.Enabled = true;
-            txbxInputImageFolder.Enabled = false;
-        }
+        //void LoadInputImageFolder(string inputImageFolder)
+        //{
+        //    r = Rectangle.Empty;
+        //    btnLoadFolder.Enabled = true;
+        //    txbxInputImageFolder.Enabled = false;
+        //}
 
-        public void btnLoadFolder_Click(object sender, EventArgs e)
-        {
-            var newInputImageFolder = txbxInputImageFolder.Text;
-            if (string.IsNullOrWhiteSpace(newInputImageFolder) || !Directory.Exists(newInputImageFolder))
-            {
-                return;
-            }
+        //public void btnLoadFolder_Click(object sender, EventArgs e)
+        //{
+        //    var newInputImageFolder = txbxInputImageFolder.Text;
+        //    if (string.IsNullOrWhiteSpace(newInputImageFolder) || !Directory.Exists(newInputImageFolder))
+        //    {
+        //        return;
+        //    }
 
-            LoadInputImageFolder(newInputImageFolder);            
-        }
+        //    LoadInputImageFolder(newInputImageFolder);            
+        //}
 
-        public void updateLabels(int i)
-        {
-            // update labels
-            if(i < _loadedDefects.Count())
-            {
-                lblImagePath.Text = _loadedDefects[i].imagePath;
-                image_path = lblImagePath.Text;
-                lblCurrentPosition.Text = (i + 1).ToString();
-            }
-        }
+        //public void updateLabels(int i)
+        //{
+        //    // update labels
+        //    if(i < _loadedDefects.Count())
+        //    {
+        //        lblImagePath.Text = _loadedDefects[i].imagePath;
+        //        image_path = lblImagePath.Text;
+        //        lblCurrentPosition.Text = (i + 1).ToString();
+        //    }
+        //}
 
         public void adjustpicturebox(PictureBox pbox, string camera)
         {
@@ -1064,14 +1175,14 @@ namespace inspectionUI
 
         private void btnDefectDetector_Click(object sender, EventArgs e)
         {
+            //string csvDefectPath = @"C:\Users\TSI\Desktop\defects.csv";
+            string csvDefectPath = inputImageFolder +"\\" +"Metadata";
+
             MessageBox.Show("Invoking Machine Learning Model... Please wait a moment... Press OK to proceed. ");
 
-            RunMLmodel(); // takes 35 seconds per scan :(
+            RunMLmodel(csvDefectPath); // takes 35 seconds per scan :(
 
             // read csv for defects, populate image
-
-            string csvDefectPath = @"C:\Users\TSI\Desktop\defects.csv";
-
 
             addMLdefects2image(csvDefectPath);
 
@@ -1130,11 +1241,11 @@ namespace inspectionUI
             }
         }
 
-        public void RunMLmodel()
+        public void RunMLmodel(string csvDefectPath)
         {
             string mlModelPath = @"C:\Users\TSI\source\repos\tsi-wsi-inspector-ui\bbox_maker\invoke_ml_model.py";
             string imagepath = imagepaths_centerimgs[imageIndex];
-            string csvDefectPath = @"C:\Users\TSI\Desktop\defects.csv";
+            //string csvDefectPath = @"C:\Users\TSI\Desktop\defects.csv";
 
             try
             {
@@ -1160,95 +1271,95 @@ namespace inspectionUI
             }
         }
 
-        public void GetDefects(string imagePath, string csvpath)
-        {
-            // USES TCP-IP PROTOCOL FOR .NET 4.8 FRAMEWORK. 
-            // AVOIDS USING ASYNC TASKS, TO PRESERVE OBJECT CHARACTERISTICS of GetDefects. 
+        //public void GetDefects(string imagePath, string csvpath)
+        //{
+        //    // USES TCP-IP PROTOCOL FOR .NET 4.8 FRAMEWORK. 
+        //    // AVOIDS USING ASYNC TASKS, TO PRESERVE OBJECT CHARACTERISTICS of GetDefects. 
 
-            //var imagePath = Path.Combine(C.TEMP_DIR, $"dd-{DateTime.Now.ToString("yyddMMhhmmss")}.jpg");
-            //bitmap.SaveAsJpg(imagePath);
+        //    //var imagePath = Path.Combine(C.TEMP_DIR, $"dd-{DateTime.Now.ToString("yyddMMhhmmss")}.jpg");
+        //    //bitmap.SaveAsJpg(imagePath);
 
-            //string csvpath = "";
+        //    //string csvpath = "";
 
-            //List<Defect> defects = new List<Defect>();
-            //List<DefectProperties> cDefects = new List<DefectProperties>();
+        //    //List<Defect> defects = new List<Defect>();
+        //    //List<DefectProperties> cDefects = new List<DefectProperties>();
 
-            // @TODO: CHANGE true TO: _inspectionSettings.AppSettingsModel.ActivateDefectDetector
+        //    // @TODO: CHANGE true TO: _inspectionSettings.AppSettingsModel.ActivateDefectDetector
 
-            //InspectionAppSettingsModel curr = new InspectionAppSettingsModel();
-            //bool whatisThis = curr.ActivateDefectDetector;
+        //    //InspectionAppSettingsModel curr = new InspectionAppSettingsModel();
+        //    //bool whatisThis = curr.ActivateDefectDetector;
 
 
-            if (true) // make sure defect detection is enabled in constants. REMOVING CONSTANTS TO SETTINGS 
-            {
-                Console.WriteLine($"CLIENT: sending message:  {imagePath}");
+        //    if (true) // make sure defect detection is enabled in constants. REMOVING CONSTANTS TO SETTINGS 
+        //    {
+        //        Console.WriteLine($"CLIENT: sending message:  {imagePath}");
 
-                try
-                {
-                    var request = JsonConvert.SerializeObject(new GetDefectsRequest()
-                    {
-                        path = imagePath,
-                        is_nose_scan = false
-                    });
+        //        try
+        //        {
+        //            var request = JsonConvert.SerializeObject(new GetDefectsRequest()
+        //            {
+        //                path = imagePath,
+        //                is_nose_scan = false
+        //            });
 
-                    var responseData = SendNetworkRequest(request);
-                    GetDefectsResponse response = JsonConvert.DeserializeObject<GetDefectsResponse>(responseData);
+        //            var responseData = SendNetworkRequest(request);
+        //            GetDefectsResponse response = JsonConvert.DeserializeObject<GetDefectsResponse>(responseData);
 
-                    csvpath = response.csv;
+        //            csvpath = response.csv;
 
-                    if (File.Exists(csvpath))
-                    {
-                        string[] lines = File.ReadAllLines(csvpath);
+        //            if (File.Exists(csvpath))
+        //            {
+        //                string[] lines = File.ReadAllLines(csvpath);
 
-                        if (lines.Length > 2) // make sure they exist
-                        {
-                            for (int i = 1; i < lines.Length; i++) // first line is header
-                            {
-                                string hm_line = lines[i].Trim();
+        //                if (lines.Length > 2) // make sure they exist
+        //                {
+        //                    for (int i = 1; i < lines.Length; i++) // first line is header
+        //                    {
+        //                        string hm_line = lines[i].Trim();
 
-                                string[] hm_vals = hm_line.Split(',');
+        //                        string[] hm_vals = hm_line.Split(',');
 
-                                double x = Convert.ToDouble(hm_vals[1]);
-                                double y = Convert.ToDouble(hm_vals[2]);
-                                string label = hm_vals[4];
+        //                        double x = Convert.ToDouble(hm_vals[1]);
+        //                        double y = Convert.ToDouble(hm_vals[2]);
+        //                        string label = hm_vals[4];
 
-                                DefectProperties addMe = new DefectProperties();
-                                addMe.X = x;
-                                addMe.Y = y;
-                                addMe.BestTagName = label;
+        //                        DefectProperties addMe = new DefectProperties();
+        //                        addMe.X = x;
+        //                        addMe.Y = y;
+        //                        addMe.BestTagName = label;
 
-                                //cDefects.Add(addMe);
-                            }
-                        }
-                    }
+        //                        //cDefects.Add(addMe);
+        //                    }
+        //                }
+        //            }
 
-                    //// now construct defect object for UI
+        //            //// now construct defect object for UI
 
-                    //double s = 96; //128
-                    //foreach (DefectProperties d in cDefects)
-                    //{
-                    //    Rect rect = new Rect(
-                    //        (int)(d.X - s / 2),
-                    //        (int)(d.Y - s / 2),
-                    //        (int)s,
-                    //        (int)s);
+        //            //double s = 96; //128
+        //            //foreach (DefectProperties d in cDefects)
+        //            //{
+        //            //    Rect rect = new Rect(
+        //            //        (int)(d.X - s / 2),
+        //            //        (int)(d.Y - s / 2),
+        //            //        (int)s,
+        //            //        (int)s);
 
-                    //    BitmapSource thumbnail = DefectDetectorCommon.CreateDefectThumbnail(bitmap, rect);
+        //            //    BitmapSource thumbnail = DefectDetectorCommon.CreateDefectThumbnail(bitmap, rect);
 
-                    //    defects.Add(item: new Defect(rect, d.BestTagName, thumbnail));
-                    //}
-                }
+        //            //    defects.Add(item: new Defect(rect, d.BestTagName, thumbnail));
+        //            //}
+        //        }
 
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.ToString());
-                    MessageBox.Show(ex.Message);
-                }
+        //        catch (Exception ex)
+        //        {
+        //            Console.WriteLine(ex.ToString());
+        //            MessageBox.Show(ex.Message);
+        //        }
 
-            }
-            var returnsomethinghere = 3;
-            //return defects;
-        }
+        //    }
+        //    var returnsomethinghere = 3;
+        //    //return defects;
+        //}
 
         private void btnMakeReport_Click(object sender, EventArgs e)
         {
@@ -1261,10 +1372,10 @@ namespace inspectionUI
 
         }
 
-        private void panel1_MouseClick(object sender, MouseEventArgs e)
-        {
-            //addDefects2img();
-        }
+        //private void panel1_MouseClick(object sender, MouseEventArgs e)
+        //{
+        //    //addDefects2img();
+        //}
 
         private void pictureBox1_SizeChanged(object sender, EventArgs e)
         {
@@ -1301,12 +1412,6 @@ namespace inspectionUI
             Refresh();
         }
 
-
-
-        private void pictureBox3_Click(object sender, EventArgs e)
-        {
-
-        }
 
         private void panel3_Scroll(object sender, ScrollEventArgs e)
         {
@@ -1420,6 +1525,49 @@ namespace inspectionUI
             return invertedImage;
 
         }
+
+        private void cxbxPINorBOX_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            cxbxPassNumber.Enabled = true;
+            cxbxPassNumber.Items.Clear(); // clear to avoid redundancy
+
+            // user selected pipe side, populate pass options
+
+            string pipeSide = cxbxPINorBOX.SelectedItem.ToString();
+
+            string workingDIR = inputImageFolder + "\\" + "RAW" + "\\" + pipeSide;
+            string[] subdirectoryEntries = Directory.GetDirectories(workingDIR);
+
+            foreach (string subdirectory in subdirectoryEntries)
+            {
+                string[] splitme = subdirectory.Split('\\');
+                string passNum = splitme.Last();
+                cxbxPassNumber.Items.Add(passNum);
+            }
+
+        }
+
+        private void cxbxPassNumber_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            // user willl select pass number, refresh 
+            string passNum = cxbxPassNumber.SelectedItem.ToString();
+            string pinOrBox = cxbxPINorBOX.SelectedItem.ToString();
+
+            MessageBox.Show("Showing Images for: " + pinOrBox + " " + passNum);
+
+            leftimages = inputImageFolder + "\\" + "RAW" + "\\" + pinOrBox + "\\" + passNum + "\\" + @"cam1\stills";
+            rightimages = inputImageFolder + "\\" + "RAW" + "\\" + pinOrBox + "\\" + passNum + "\\" + @"cam2\stills";
+            centerimages = inputImageFolder + "\\" + "RAW" + "\\" + pinOrBox + "\\" + passNum + "\\" + @"cam0\stills";
+
+            loadImageToPictureBox();
+
+            tbarImage.Maximum = totalImages;
+
+            PopulateDataGridView();
+
+            addDefects2img();
+        }
+
     }
 
     public class GetDefectsRequest
@@ -1436,27 +1584,5 @@ namespace inspectionUI
         public string path { get; set; }
         public string csv { get; set; }
     }
-    public class DefectProperties
-    {
-        // added to utilize new DL model
-        // TODO - UPDATE by removing Cognex object artifacts
 
-        public string FilePath { get; set; }
-        public double X { get; set; }
-
-        public double Y { get; set; }
-
-        public double Height { get; set; }
-
-        public double Width { get; set; }
-
-        public string BestTagName { get; set; }
-        public double BestTagScore { get; set; }
-
-        public double Redscore { get; set; }
-
-        public List<string> Tags { get; set; }
-        public List<double> GreenScores { get; set; }
-
-    }
 }

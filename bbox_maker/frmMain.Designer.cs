@@ -31,15 +31,11 @@
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.btnLoadFolder = new System.Windows.Forms.Button();
             this.btnPrevious = new System.Windows.Forms.Button();
             this.btnNext = new System.Windows.Forms.Button();
             this.txbxInputImageFolder = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
-            this.btnBrowse = new System.Windows.Forms.Button();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            this.label1 = new System.Windows.Forms.Label();
-            this.lblImagePath = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.label11 = new System.Windows.Forms.Label();
             this.label12 = new System.Windows.Forms.Label();
@@ -62,6 +58,10 @@
             this.pictureBox3 = new System.Windows.Forms.PictureBox();
             this.cxbxSnycScrollbars = new System.Windows.Forms.CheckBox();
             this.cxbxInvertImages = new System.Windows.Forms.CheckBox();
+            this.cxbxPINorBOX = new System.Windows.Forms.ComboBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.label8 = new System.Windows.Forms.Label();
+            this.cxbxPassNumber = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.panel1.SuspendLayout();
@@ -88,23 +88,11 @@
             this.pictureBox1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseMove);
             this.pictureBox1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseUp);
             // 
-            // btnLoadFolder
-            // 
-            this.btnLoadFolder.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnLoadFolder.Location = new System.Drawing.Point(1660, 18);
-            this.btnLoadFolder.Margin = new System.Windows.Forms.Padding(6);
-            this.btnLoadFolder.Name = "btnLoadFolder";
-            this.btnLoadFolder.Size = new System.Drawing.Size(210, 64);
-            this.btnLoadFolder.TabIndex = 5;
-            this.btnLoadFolder.Text = "Load Folder";
-            this.btnLoadFolder.UseVisualStyleBackColor = true;
-            this.btnLoadFolder.Click += new System.EventHandler(this.btnLoadFolder_Click);
-            // 
             // btnPrevious
             // 
             this.btnPrevious.Enabled = false;
             this.btnPrevious.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnPrevious.Location = new System.Drawing.Point(245, 81);
+            this.btnPrevious.Location = new System.Drawing.Point(1034, 88);
             this.btnPrevious.Margin = new System.Windows.Forms.Padding(6);
             this.btnPrevious.Name = "btnPrevious";
             this.btnPrevious.Size = new System.Drawing.Size(308, 150);
@@ -117,7 +105,7 @@
             // 
             this.btnNext.Enabled = false;
             this.btnNext.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnNext.Location = new System.Drawing.Point(2397, 81);
+            this.btnNext.Location = new System.Drawing.Point(2578, 88);
             this.btnNext.Margin = new System.Windows.Forms.Padding(6);
             this.btnNext.Name = "btnNext";
             this.btnNext.Size = new System.Drawing.Size(175, 150);
@@ -129,7 +117,7 @@
             // txbxInputImageFolder
             // 
             this.txbxInputImageFolder.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txbxInputImageFolder.Location = new System.Drawing.Point(332, 25);
+            this.txbxInputImageFolder.Location = new System.Drawing.Point(284, 25);
             this.txbxInputImageFolder.Margin = new System.Windows.Forms.Padding(6);
             this.txbxInputImageFolder.Name = "txbxInputImageFolder";
             this.txbxInputImageFolder.Size = new System.Drawing.Size(1058, 44);
@@ -143,21 +131,9 @@
             this.label6.Location = new System.Drawing.Point(26, 28);
             this.label6.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(294, 37);
+            this.label6.Size = new System.Drawing.Size(225, 37);
             this.label6.TabIndex = 26;
-            this.label6.Text = "Input Image Folder:";
-            // 
-            // btnBrowse
-            // 
-            this.btnBrowse.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnBrowse.Location = new System.Drawing.Point(1438, 17);
-            this.btnBrowse.Margin = new System.Windows.Forms.Padding(6);
-            this.btnBrowse.Name = "btnBrowse";
-            this.btnBrowse.Size = new System.Drawing.Size(210, 65);
-            this.btnBrowse.TabIndex = 27;
-            this.btnBrowse.Text = "Browse";
-            this.btnBrowse.UseVisualStyleBackColor = true;
-            this.btnBrowse.Click += new System.EventHandler(this.btnBrowse_Click);
+            this.label6.Text = "Project Folder:";
             // 
             // dataGridView1
             // 
@@ -180,27 +156,6 @@
             this.dataGridView1.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
             this.dataGridView1.SelectionChanged += new System.EventHandler(this.dataGridView1_SelectionChanged);
             // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(1911, 32);
-            this.label1.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(198, 37);
-            this.label1.TabIndex = 8;
-            this.label1.Text = "Image Path: ";
-            // 
-            // lblImagePath
-            // 
-            this.lblImagePath.AutoSize = true;
-            this.lblImagePath.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblImagePath.Location = new System.Drawing.Point(2121, 32);
-            this.lblImagePath.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
-            this.lblImagePath.Name = "lblImagePath";
-            this.lblImagePath.Size = new System.Drawing.Size(0, 37);
-            this.lblImagePath.TabIndex = 20;
-            // 
             // label2
             // 
             this.label2.AutoSize = true;
@@ -216,7 +171,7 @@
             // 
             this.label11.AutoSize = true;
             this.label11.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label11.Location = new System.Drawing.Point(2650, 104);
+            this.label11.Location = new System.Drawing.Point(2864, 107);
             this.label11.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(233, 37);
@@ -227,7 +182,7 @@
             // 
             this.label12.AutoSize = true;
             this.label12.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label12.Location = new System.Drawing.Point(2610, 161);
+            this.label12.Location = new System.Drawing.Point(2824, 164);
             this.label12.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(280, 37);
@@ -238,7 +193,7 @@
             // 
             this.lblCurrentPosition.AutoSize = true;
             this.lblCurrentPosition.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblCurrentPosition.Location = new System.Drawing.Point(2902, 102);
+            this.lblCurrentPosition.Location = new System.Drawing.Point(3116, 105);
             this.lblCurrentPosition.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             this.lblCurrentPosition.Name = "lblCurrentPosition";
             this.lblCurrentPosition.Size = new System.Drawing.Size(35, 37);
@@ -249,7 +204,7 @@
             // 
             this.lblTotalCount.AutoSize = true;
             this.lblTotalCount.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblTotalCount.Location = new System.Drawing.Point(2902, 161);
+            this.lblTotalCount.Location = new System.Drawing.Point(3116, 164);
             this.lblTotalCount.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             this.lblTotalCount.Name = "lblTotalCount";
             this.lblTotalCount.Size = new System.Drawing.Size(35, 37);
@@ -288,11 +243,12 @@
             this.panel1.Size = new System.Drawing.Size(1450, 1900);
             this.panel1.TabIndex = 32;
             this.panel1.Scroll += new System.Windows.Forms.ScrollEventHandler(this.panel1_Scroll);
-            this.panel1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseClick);
+            //this.panel1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseClick);
+            //this.panel1.MouseEnter += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseWheel);
             // 
             // tbarZoom
             // 
-            this.tbarZoom.Location = new System.Drawing.Point(3505, 108);
+            this.tbarZoom.Location = new System.Drawing.Point(3958, 121);
             this.tbarZoom.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.tbarZoom.Maximum = 100;
             this.tbarZoom.Name = "tbarZoom";
@@ -305,7 +261,7 @@
             // 
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label4.Location = new System.Drawing.Point(3296, 122);
+            this.label4.Location = new System.Drawing.Point(3749, 135);
             this.label4.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(216, 37);
@@ -316,7 +272,7 @@
             // 
             this.lblZoomVal.AutoSize = true;
             this.lblZoomVal.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblZoomVal.Location = new System.Drawing.Point(3829, 122);
+            this.lblZoomVal.Location = new System.Drawing.Point(4282, 135);
             this.lblZoomVal.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             this.lblZoomVal.Name = "lblZoomVal";
             this.lblZoomVal.Size = new System.Drawing.Size(33, 37);
@@ -350,9 +306,9 @@
             // 
             // tbarImage
             // 
-            this.tbarImage.Location = new System.Drawing.Point(575, 141);
+            this.tbarImage.Location = new System.Drawing.Point(1389, 148);
             this.tbarImage.Name = "tbarImage";
-            this.tbarImage.Size = new System.Drawing.Size(1813, 90);
+            this.tbarImage.Size = new System.Drawing.Size(1166, 90);
             this.tbarImage.TabIndex = 38;
             this.tbarImage.Scroll += new System.EventHandler(this.tbarImage_Scroll);
             // 
@@ -399,6 +355,9 @@
             this.pictureBox2.TabIndex = 1;
             this.pictureBox2.TabStop = false;
             this.pictureBox2.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBox2_Paint);
+            this.pictureBox2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBox2_MouseDown);
+            this.pictureBox2.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pictureBox2_MouseMove);
+            this.pictureBox2.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pictureBox2_MouseUp);
             // 
             // panel3
             // 
@@ -420,8 +379,11 @@
             this.pictureBox3.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
             this.pictureBox3.TabIndex = 1;
             this.pictureBox3.TabStop = false;
-            this.pictureBox3.Click += new System.EventHandler(this.pictureBox3_Click);
+            //this.pictureBox3.Click += new System.EventHandler(this.pictureBox3_Click);
             this.pictureBox3.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBox3_Paint);
+            this.pictureBox3.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBox3_MouseDown);
+            this.pictureBox3.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pictureBox3_MouseMove);
+            this.pictureBox3.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pictureBox3_MouseUp);
             // 
             // cxbxSnycScrollbars
             // 
@@ -447,6 +409,48 @@
             this.cxbxInvertImages.UseVisualStyleBackColor = true;
             this.cxbxInvertImages.CheckedChanged += new System.EventHandler(this.cxbxInvertImages_CheckedChanged);
             // 
+            // cxbxPINorBOX
+            // 
+            this.cxbxPINorBOX.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.cxbxPINorBOX.FormattingEnabled = true;
+            this.cxbxPINorBOX.Location = new System.Drawing.Point(284, 99);
+            this.cxbxPINorBOX.Name = "cxbxPINorBOX";
+            this.cxbxPINorBOX.Size = new System.Drawing.Size(181, 45);
+            this.cxbxPINorBOX.TabIndex = 45;
+            this.cxbxPINorBOX.SelectedIndexChanged += new System.EventHandler(this.cxbxPINorBOX_SelectedIndexChanged);
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label7.Location = new System.Drawing.Point(26, 99);
+            this.label7.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(202, 37);
+            this.label7.TabIndex = 46;
+            this.label7.Text = "PIN or BOX: ";
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label8.Location = new System.Drawing.Point(26, 165);
+            this.label8.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(221, 37);
+            this.label8.TabIndex = 47;
+            this.label8.Text = "Pass Number:";
+            // 
+            // cxbxPassNumber
+            // 
+            this.cxbxPassNumber.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.cxbxPassNumber.FormattingEnabled = true;
+            this.cxbxPassNumber.Location = new System.Drawing.Point(284, 165);
+            this.cxbxPassNumber.Name = "cxbxPassNumber";
+            this.cxbxPassNumber.Size = new System.Drawing.Size(181, 45);
+            this.cxbxPassNumber.TabIndex = 48;
+            this.cxbxPassNumber.SelectedIndexChanged += new System.EventHandler(this.cxbxPassNumber_SelectedIndexChanged);
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 25F);
@@ -455,6 +459,10 @@
             this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
             this.ClientSize = new System.Drawing.Size(4504, 2763);
+            this.Controls.Add(this.cxbxPassNumber);
+            this.Controls.Add(this.label8);
+            this.Controls.Add(this.label7);
+            this.Controls.Add(this.cxbxPINorBOX);
             this.Controls.Add(this.cxbxInvertImages);
             this.Controls.Add(this.cxbxSnycScrollbars);
             this.Controls.Add(this.panel3);
@@ -472,18 +480,14 @@
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.dataGridView1);
-            this.Controls.Add(this.btnBrowse);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.txbxInputImageFolder);
             this.Controls.Add(this.lblTotalCount);
             this.Controls.Add(this.lblCurrentPosition);
             this.Controls.Add(this.label12);
             this.Controls.Add(this.label11);
-            this.Controls.Add(this.lblImagePath);
-            this.Controls.Add(this.label1);
             this.Controls.Add(this.btnNext);
             this.Controls.Add(this.btnPrevious);
-            this.Controls.Add(this.btnLoadFolder);
             this.DoubleBuffered = true;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(6);
@@ -510,14 +514,10 @@
 
         #endregion
         public System.Windows.Forms.PictureBox pictureBox1;
-        public System.Windows.Forms.Button btnLoadFolder;
         public System.Windows.Forms.Button btnPrevious;
         public System.Windows.Forms.Button btnNext;
         private System.Windows.Forms.TextBox txbxInputImageFolder;
         private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.Button btnBrowse;
-        private System.Windows.Forms.Label label1;
-        public System.Windows.Forms.Label lblImagePath;
         public System.Windows.Forms.DataGridView dataGridView1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label11;
@@ -541,6 +541,10 @@
         public System.Windows.Forms.PictureBox pictureBox3;
         public System.Windows.Forms.CheckBox cxbxSnycScrollbars;
         public System.Windows.Forms.CheckBox cxbxInvertImages;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Label label8;
+        public System.Windows.Forms.ComboBox cxbxPINorBOX;
+        public System.Windows.Forms.ComboBox cxbxPassNumber;
     }
 }
 

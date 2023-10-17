@@ -16,7 +16,7 @@ namespace bbox_maker
 {
     public partial class frmProjectFolder : Form
     {
-        public string projectPath = @"\\TSI-AIO-DT01\Users\prime\Documents\scans";
+        public string projectPath;
         public Process _pythonProcess;
         public string inputImageFolder;
 
@@ -30,9 +30,28 @@ namespace bbox_maker
 
         public void frmProjectFolder_Load(object sender, EventArgs e)
         {
-            // populate combobox with project folders
-            string[] folders = Directory.GetDirectories(projectPath);
-            comboBox1.Items.AddRange(folders);
+            projectPath = @"\\TSI-AIO-DT01\Users\prime\Documents\scans";
+
+            if (Directory.Exists(projectPath))
+            {
+                // populate combobox with project folders
+                string[] folders = Directory.GetDirectories(projectPath);
+                comboBox1.Items.AddRange(folders);
+            }
+            else
+            {
+                MessageBox.Show("unable to find video project path. Reverting to local project.");
+                inputImageFolder = @"C:\wsi-project-scans\20231016-100646";
+
+                //comboBox1.Items.Add(projectPath);
+                frmMain frmMain = new frmMain(inputImageFolder);
+                frmMain.Show();
+
+                this.Hide(); // hide, but don't close instance.
+
+            }
+
+            
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -65,7 +84,16 @@ namespace bbox_maker
 
                     // now show images from new folder.
 
-                    frmMain frmMain = new frmMain(inputImageFolder);
+                    // images are made, need to populate new project folder
+
+                    //string lastFolderName = new DirectoryInfo(Path.GetDirectoryName(inputImageFolder)).Name;
+                    string[] inputImageFolderNames = inputImageFolder.Split('\\');
+
+                    string lastFolderName = inputImageFolderNames.Last();
+
+                    string newInputFolderName = @"C:\wsi-project-scans" + "\\" + lastFolderName;
+
+                    frmMain frmMain = new frmMain(newInputFolderName);
                     frmMain.Show();
 
                     this.Hide(); // hide, but don't close instance.

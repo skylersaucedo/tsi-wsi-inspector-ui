@@ -8,6 +8,7 @@ import numpy
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+import sys
 
 def make_report_from_logs(defect_log_path, logo_file_path, save_pdf_path):
 
@@ -90,8 +91,14 @@ if __name__ == "__main__":
     root = os.getcwd()
     print('root: ', root)
 
+    project_path = sys.argv[1]
+
+    print('project path: ', project_path)
+
+    #save_pdf_path = r'C:\Users\TSI\source\repos\tsi-wsi-inspector-ui\bbox_maker\inspection_report.pdf'
+    save_pdf_path = project_path + "\\" + "Metadata" + "\\" + "inspection_report.pdf"
+
     defect_log_path = r'C:\Users\TSI\source\repos\tsi-wsi-inspector-ui\bbox_maker\defectslog.txt'
-    save_pdf_path = r'C:\Users\TSI\source\repos\tsi-wsi-inspector-ui\bbox_maker\inspection_report.pdf'
     logo_file_path = r'C:\Users\TSI\source\repos\tsi-wsi-inspector-ui\bbox_maker\logoTUBES.png'
 
     make_report_from_logs(defect_log_path, logo_file_path, save_pdf_path)

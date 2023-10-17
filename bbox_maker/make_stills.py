@@ -9,6 +9,8 @@ import sys
 from distutils.dir_util import copy_tree
 import shutil
 from pathlib import Path
+from tqdm import tqdm
+
 
 def make_stills_from_vid(vid_path, save_path, project_name, BoxOrPin, passnum, camnum):
     """
@@ -84,7 +86,7 @@ def main(root_vid_pth):
 
     avi_files = []
     for root, dirs, files in os.walk(new_project_folder_path):
-        for file in files:
+        for file in tqdm(files):
             if file.endswith('.avi'):
                 avi_files.append(os.path.join(root, file))
 
@@ -92,7 +94,7 @@ def main(root_vid_pth):
 
     # we cound video paths, now we need to create project folder structure and
 
-    for f in avi_files:
+    for f in tqdm(avi_files):
         splity = f.split("\\")
 
         # box or pin
@@ -114,7 +116,7 @@ def main(root_vid_pth):
         # cam number
 
         camnum = ''
-        for j in range(4):
+        for j in tqdm(range(4)):
             if any('cam{}'.format(j) in x  for x in splity):
                 camnum = 'cam{}'.format(j)
 
