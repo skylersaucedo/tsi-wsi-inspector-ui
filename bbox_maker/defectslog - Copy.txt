@@ -1,0 +1,8 @@
+index,datetime,image_path,h,w,inspector,defect,loc_x,loc_y,def_h,def_w,notes,image_index,pipe_ID
+6,10/12/2023 11:02:12 AM,C:\Users\TSI\Desktop\oct-10_bmp\center\006_img.bmp,4912,3684,M. Salamanca,new guy,521,1468,753,1111,Testing gen report Oct12,6,GT690-1001122
+2,10/17/2023 2:25:34 PM,C:\wsi-project-scans\20231010-112134_5_passes\RAW\PIN\pass3\cam0\stills\20231010-112134_5_passes_PIN_pass3_cam0_001_img.bmp,4912,3684,M. Salamanca,scratch,1747,1995,474,389,, 1, GT690-1001122
+3,10/17/2023 2:25:41 PM,C:\wsi-project-scans\20231010-112134_5_passes\RAW\PIN\pass3\cam2\stills\20231010-112134_5_passes_PIN_pass3_cam2_001_img.bmp,4912,3684,M. Salamanca,scratch,279,1747,537,595,, 1, GT690-1001122
+4,10/17/2023 2:26:03 PM,C:\wsi-project-scans\20231010-112134_5_passes\RAW\PIN\pass3\cam1\stills\20231010-112134_5_passes_PIN_pass3_cam1_001_img.bmp,4912,3684,M. Salamanca,scratch,563,1137,1258,1174,, 1, GT690-1001122
+5,10/18/2023 9:43:52 AM,C:\wsi-project-scans\20231010-112134_5_passes\RAW\PIN\pass1\cam0\stills\20231010-112134_5_passes_PIN_pass1_cam0_011_img.bmp,4912,3684,M. Salamanca,pit,921,3195,474,500,, 11, GT690-1001122
+6,10/18/2023 9:44:00 AM,C:\wsi-project-scans\20231010-112134_5_passes\RAW\PIN\pass1\cam2\stills\20231010-112134_5_passes_PIN_pass1_cam2_011_img.bmp,4912,3684,M. Salamanca,pit,1763,3079,516,437,, 11, GT690-1001122
+7,10/18/2023 9:44:08 AM,C:\wsi-project-scans\20231010-112134_5_passes\RAW\PIN\pass1\cam1\stills\20231010-112134_5_passes_PIN_pass1_cam1_011_img.bmp,4912,3684,M. Salamanca,pit,721,2989,321,263,, 11, GT690-1001122

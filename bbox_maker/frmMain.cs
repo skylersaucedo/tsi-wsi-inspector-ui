@@ -9,7 +9,9 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
+using System.Security.Policy;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -109,6 +111,9 @@ namespace inspectionUI
         public int wn { get; set; }
 
         public string pipeID { get; set; }  
+        public string projectID { get; set; }
+        public int pass { get; set; }
+        public string pipeSide { get; set; }
 
 
         public frmMain(string _inputImageFolder)
@@ -146,6 +151,8 @@ namespace inspectionUI
             // populate combo boxes for user to select PIN or BOX
 
             cxbxPassNumber.Enabled = false; // do not enable until user makes selection
+
+            projectID = inputImageFolder;
 
             string workingDIR = inputImageFolder + "\\" + "RAW";
             string[] subdirectoryEntries = Directory.GetDirectories(workingDIR);
@@ -398,19 +405,24 @@ namespace inspectionUI
 
                 Defect newDefect = new Defect();
 
+                int cam = 0;
+
                 if (picturebox == "pbox1")
                 {
                     newDefect.image_name = imagepaths_centerimgs[imageIndex];
+                    cam = 0;
                 }
 
                 if (picturebox == "pbox2")
                 {
                     newDefect.image_name = imagepaths_rightimgs[imageIndex];
+                    cam = 1;
                 }
 
                 if (picturebox == "pbox3")
                 {
                     newDefect.image_name = imagepaths_leftimgs[imageIndex];
+                    cam = 2;
                 }
 
                 newDefect.index = totalDefects + 1;
@@ -423,7 +435,6 @@ namespace inspectionUI
                 newDefect.h = h;
                 newDefect.w = w;
                 newDefect.inspector = txbxInspector.Text;
-                newDefect.defect = "tba - sept 25";
 
                 // account for scaling factor
 
@@ -431,10 +442,17 @@ namespace inspectionUI
                 newDefect.location_y = Convert.ToInt32(r.Y / s);
                 newDefect.def_h = Convert.ToInt32(r.Height / s);
                 newDefect.def_w = Convert.ToInt32(r.Width / s);
-                newDefect.notes = "tba - sept 25";
                 newDefect.r = r; // r wrt scaled image
                 newDefect.image_index = imageIndex;
                 newDefect.pipe_id = pipeID;
+                newDefect.project = projectID;
+                newDefect.cam = cam;
+                newDefect.pass= pass;
+                newDefect.pipe_side = pipeSide;
+
+                newDefect.defect = "to be added by inspector";
+                newDefect.notes = "to be added by inspector";
+
 
 
                 frmAddDefect form = new frmAddDefect(newDefect, table);
@@ -482,17 +500,22 @@ namespace inspectionUI
 
                 int index = i;
                 string datetime = x[1];
-                string image_name = x[2];
-                int h = Convert.ToInt32(x[3]);
-                int w = Convert.ToInt32(x[4]);
-                string inspector = x[5];
-                string defect = x[6];
-                int loc_x = Convert.ToInt32(Convert.ToDouble(x[7])*s);
-                int loc_y = Convert.ToInt32(Convert.ToDouble(x[8]) * s);
-                int def_h = Convert.ToInt32(Convert.ToDouble(x[9]) * s);
-                int def_w = Convert.ToInt32(Convert.ToDouble(x[10]) * s);
-                string notes = x[11];
-                string image_index = x[12];
+                string inspector = x[2];
+                string pipe_ID = x[3];
+                string defect = x[4];
+                string notes = x[5];
+                string project = x[6];
+                string pipe_side = x[7];
+                int pass = Convert.ToInt32(x[8]);
+                int cam = Convert.ToInt32(x[9]);
+                int img_idx = Convert.ToInt32(x[10]);
+                string img_name = x[11];
+                int h = Convert.ToInt32(x[12]);
+                int w = Convert.ToInt32(x[13]);
+                int loc_x = Convert.ToInt32(x[14]);
+                int loc_y = Convert.ToInt32(x[15]);
+                int def_h = Convert.ToInt32(x[16]);
+                int def_w = Convert.ToInt32(x[17]);
 
                 // add everything to the table
 
@@ -500,7 +523,7 @@ namespace inspectionUI
 
                 // update image with rects
 
-                if (image_name == image_path)
+                if (img_name == image_path)
                 {
                     Rectangle r_n = new Rectangle(loc_x, loc_y, def_w, def_h);
 
@@ -517,25 +540,24 @@ namespace inspectionUI
         {
             DataTable table = new DataTable(); // clear out old stuff
 
-            // Create a DataTable with 4 columns
-            //DataTable table = new DataTable();
             table.Columns.Add("index", typeof(int));
             table.Columns.Add("datetime", typeof(string));
-            table.Columns.Add("image_name", typeof(string));
-            table.Columns.Add("h", typeof(int));
-            table.Columns.Add("w", typeof(int));
             table.Columns.Add("inspector", typeof(string));
+            table.Columns.Add("pipe_id", typeof(string));
             table.Columns.Add("defect", typeof(string));
+            table.Columns.Add("notes", typeof(string));
+            table.Columns.Add("project", typeof(string));
+            table.Columns.Add("pipe_side", typeof(string));
+            table.Columns.Add("pass_number", typeof(int));
+            table.Columns.Add("cam_number", typeof(int));
+            table.Columns.Add("img_idx", typeof(int));
+            table.Columns.Add("image_name", typeof(string));
+            table.Columns.Add("img_h", typeof(int));
+            table.Columns.Add("img_w", typeof(int));
             table.Columns.Add("loc_x", typeof(int));
             table.Columns.Add("loc_y", typeof(int));
             table.Columns.Add("def_h", typeof(int));
             table.Columns.Add("def_w", typeof(int));
-
-            table.Columns.Add("notes", typeof(string));
-            table.Columns.Add("image_index", typeof(int));
-            table.Columns.Add(columnName: "pipe_id", typeof(string));
-
-
 
             string[] defectlogs = File.ReadAllLines(defectslog_path);
 
@@ -548,24 +570,43 @@ namespace inspectionUI
 
                     string[] x = defectlogs[i].Split(',');
 
+                    //int index = i;
+                    //string datetime = x[1];
+                    //string image_name = x[2];
+                    //int h = Convert.ToInt32(x[3]);
+                    //int w = Convert.ToInt32(x[4]);
+                    //string inspector = x[5];
+                    //string defect = x[6];
+                    //int loc_x = Convert.ToInt32(x[7]);
+                    //int loc_y = Convert.ToInt32(x[8]);
+                    //int def_h = Convert.ToInt32(x[9]);
+                    //int def_w = Convert.ToInt32(x[10]);
+                    //string notes = x[11];
+                    //string image_index = x[12];
+                    //string pipe_id = x[13];
+
                     int index = i;
                     string datetime = x[1];
-                    string image_name = x[2];
-                    int h = Convert.ToInt32(x[3]);
-                    int w = Convert.ToInt32(x[4]);
-                    string inspector = x[5];
-                    string defect = x[6];
-                    int loc_x = Convert.ToInt32(x[7]);
-                    int loc_y = Convert.ToInt32(x[8]);
-                    int def_h = Convert.ToInt32(x[9]);
-                    int def_w = Convert.ToInt32(x[10]);
-                    string notes = x[11];
-                    string image_index = x[12];
-                    string pipe_id = x[13];
+                    string inspector = x[2];
+                    string pipe_ID = x[3];
+                    string defect = x[4];
+                    string notes = x[5];
+                    string project = x[6];
+                    string pipe_side = x[7];
+                    int pass = Convert.ToInt32(x[8]);
+                    int cam = Convert.ToInt32(x[9]);
+                    int img_idx = Convert.ToInt32(x[10]);
+                    string img_name = x[11];
+                    int h = Convert.ToInt32(x[12]);
+                    int w = Convert.ToInt32(x[13]);
+                    int loc_x = Convert.ToInt32(x[14]);
+                    int loc_y = Convert.ToInt32(x[15]);
+                    int def_h = Convert.ToInt32(x[16]);
+                    int def_w = Convert.ToInt32(x[17]);
 
                     // add everything to the table
 
-                    table.Rows.Add(index, datetime, image_name, h, w, inspector, defect, loc_x, loc_y, def_h, def_w, notes, image_index, pipe_id);
+                    table.Rows.Add(index, datetime, inspector, pipe_ID, defect, notes, project, pipe_side, pass, cam, img_idx, img_name, h, w, loc_x, loc_y, def_h, def_w);
 
                     // update image with rects
 
@@ -1549,9 +1590,18 @@ namespace inspectionUI
 
         private void cxbxPassNumber_SelectedIndexChanged(object sender, EventArgs e)
         {
+            
+            
             // user willl select pass number, refresh 
             string passNum = cxbxPassNumber.SelectedItem.ToString();
             string pinOrBox = cxbxPINorBOX.SelectedItem.ToString();
+
+            string number = Regex.Match(passNum, @"\d+").Value;
+
+
+
+            pass = Convert.ToInt32(number);
+            pipeSide = pinOrBox;
 
             MessageBox.Show("Showing Images for: " + pinOrBox + " " + passNum);
 

@@ -156,6 +156,7 @@ namespace inspectionUI
 
                 if (records.Length == 0)
                 {
+                    // TODO: NEED TO ADDRESS THIS LATER
                     // make sure header is in .csv file or you're going to get an out of index error!
                     records[0] = "";
                     //add header
@@ -169,7 +170,27 @@ namespace inspectionUI
 
                 //string newrecord = "index, datetime, image_name, h, w, inspector, defect, loc_x, loc_y, def_h, def_w, notes;"; //add new record here
 
-                string newrecord = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}, {12}, {13}", d.index, d.datetime, d.image_name, d.h, d.w, d.inspector, d.defect, d.location_x, d.location_y, d.def_h, d.def_w, d.notes, d.image_index, d.pipe_id);
+                //string newrecord = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}, {12}, {13}", d.index, d.datetime, d.image_name, d.h, d.w, d.inspector, d.defect, d.location_x, d.location_y, d.def_h, d.def_w, d.notes, d.image_index, d.pipe_id);
+                string newrecord = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17}",
+                    d.index,
+                    d.datetime,
+                    d.inspector,
+                    d.pipe_id,
+                    d.defect,
+                    d.notes,
+                    d.project,
+                    d.pipe_side,
+                    d.pass,
+                    d.cam,
+                    d.image_index,
+                    d.image_name,
+                    d.h,
+                    d.w,
+                    d.location_x,
+                    d.location_y,
+                    d.def_h,
+                    d.def_w
+                    );
 
                 string newName = d.label;
                 Array.Resize(ref records, records.Length + 1);

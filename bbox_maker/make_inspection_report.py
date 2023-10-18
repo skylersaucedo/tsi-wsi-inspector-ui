@@ -14,6 +14,8 @@ def make_report_from_logs(defect_log_path, logo_file_path, save_pdf_path):
 
     df = pd.read_csv(defect_log_path)
 
+    print(df)
+
     # create a sample figure with two subplots
     fig, axs = plt.subplots(nrows=len(df)+1, ncols=2, figsize=(20, int(3*len(df))))
 
@@ -35,20 +37,23 @@ def make_report_from_logs(defect_log_path, logo_file_path, save_pdf_path):
     for i, row in df.iterrows():
         
         datetime = row['datetime']
-        image_path = row['image_path']
+        image_path = row['img_name']
         notes = row['notes']
         x = row['loc_x']
         y = row['loc_y']
         label = row['defect']
         def_h = row['def_h']
         def_w = row['def_w']
-        image_index = row['image_index']
+        image_index = row['img_idx']
         pipe_ID = row['pipe_ID']
         inspector = row['inspector']
 
         # open img, find defect
         img = cv2.imread(image_path)    
-        defect = img[y:y+def_h,x:x+def_w,:]
+        defect_r = img[y:y+def_h,x:x+def_w,:]
+
+        defect = cv2.cvtColor(defect_r, cv2.COLOR_BGR2RGB)
+
 
         axs[i+1,0].imshow(defect)
         
