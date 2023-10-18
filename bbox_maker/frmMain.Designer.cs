@@ -230,7 +230,7 @@
             this.txbxInspector.Name = "txbxInspector";
             this.txbxInspector.Size = new System.Drawing.Size(442, 49);
             this.txbxInspector.TabIndex = 31;
-            this.txbxInspector.Text = "M. Salamanca";
+            this.txbxInspector.Text = "J. Tritz";
             this.txbxInspector.TextChanged += new System.EventHandler(this.txbxInspector_TextChanged);
             // 
             // panel1
@@ -318,7 +318,7 @@
             this.txbxPipeID.Name = "txbxPipeID";
             this.txbxPipeID.Size = new System.Drawing.Size(442, 49);
             this.txbxPipeID.TabIndex = 39;
-            this.txbxPipeID.Text = "GT690-1001122";
+            this.txbxPipeID.Text = "GTM69-0001";
             this.txbxPipeID.TextChanged += new System.EventHandler(this.txbxPipeID_TextChanged);
             // 
             // label5
