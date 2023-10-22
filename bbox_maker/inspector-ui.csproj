@@ -72,6 +72,8 @@
     <Compile Include="Libs\FileBrowser.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="uiPaths.cs" />
+    <Compile Include="uiViews.cs" />
     <EmbeddedResource Include="frmAddDefect.resx">
       <DependentUpon>frmAddDefect.cs</DependentUpon>
     </EmbeddedResource>
@@ -90,6 +92,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <None Include="make_stills.py" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

@@ -1,27 +1,22 @@
 ﻿using inspectionUI;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Security.Policy;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace bbox_maker
+
+namespace inspectorUI
 {
+
     public partial class frmProjectFolder : Form
     {
         public string projectPath;
         public Process _pythonProcess;
         public string inputImageFolder;
 
-        public static readonly string pythonEnvDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"miniconda3\envs\pytorch-gpu");
-        public static readonly string pythonEnvPath = Path.Combine(pythonEnvDir, @"python.exe");
+
+        public uiPaths appPaths = new uiPaths();
 
         public frmProjectFolder()
         {
@@ -30,7 +25,7 @@ namespace bbox_maker
 
         public void frmProjectFolder_Load(object sender, EventArgs e)
         {
-            projectPath = @"\\TSI-AIO-DT01\Users\prime\Documents\scans";
+            projectPath = appPaths.projectPath;
 
             if (Directory.Exists(projectPath))
             {
@@ -41,10 +36,7 @@ namespace bbox_maker
             else
             {
                 MessageBox.Show("unable to find video project path. Reverting to local project.");
-                inputImageFolder = @"C:\wsi-project-scans\20231016-100646";
-
-                //comboBox1.Items.Add(projectPath);
-                frmMain frmMain = new frmMain(inputImageFolder);
+                frmMain frmMain = new frmMain(appPaths.backupImageFolder);
                 frmMain.Show();
 
                 this.Hide(); // hide, but don't close instance.
@@ -82,16 +74,13 @@ namespace bbox_maker
 
                     makeStillsfromProjectFolder(inputImageFolder);
 
-                    // now show images from new folder.
-
                     // images are made, need to populate new project folder
 
-                    //string lastFolderName = new DirectoryInfo(Path.GetDirectoryName(inputImageFolder)).Name;
                     string[] inputImageFolderNames = inputImageFolder.Split('\\');
 
                     string lastFolderName = inputImageFolderNames.Last();
 
-                    string newInputFolderName = @"C:\wsi-project-scans" + "\\" + lastFolderName;
+                    string newInputFolderName = appPaths.newProjectPath + "\\" + lastFolderName;
 
                     frmMain frmMain = new frmMain(newInputFolderName);
                     frmMain.Show();
@@ -103,26 +92,20 @@ namespace bbox_maker
                 {
                     MessageBox.Show("NOT making stills. Please select a project to analyze");
                 }
-
             }
-
-
         }
 
         public void makeStillsfromProjectFolder(string stillsFolder)
         {
- 
-            string makeStillsScript = @"C:\Users\TSI\source\repos\tsi-wsi-inspector-ui\bbox_maker\make_stills.py";
-
             try
             {
                 var pyStartInfo = new ProcessStartInfo(); // run the python script
-                pyStartInfo.FileName = pythonEnvPath;
+                pyStartInfo.FileName = uiPaths.pythonEnvPath;
                 pyStartInfo.UseShellExecute = false;
                 pyStartInfo.CreateNoWindow = false; //true before, we are debugging right now...
                 pyStartInfo.RedirectStandardOutput = false; //true before
                 pyStartInfo.RedirectStandardError = false; //true before
-                pyStartInfo.Arguments = $"\"{makeStillsScript}\" \"{stillsFolder}\"";
+                pyStartInfo.Arguments = $"\"{appPaths.makeStillsPyPath}\" \"{stillsFolder}\"";
 
                 using (var pythonProcess = Process.Start(pyStartInfo))
                 {

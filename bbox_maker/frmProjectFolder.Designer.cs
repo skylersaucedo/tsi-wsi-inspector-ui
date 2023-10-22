@@ -1,4 +1,4 @@
-﻿namespace bbox_maker
+﻿namespace inspectorUI
 {
     partial class frmProjectFolder
     {
