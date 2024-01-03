@@ -8,6 +8,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -101,10 +102,7 @@ namespace inspectionUI
                 cxbxPINorBOX.Items.Add(boxOrPin);
             }
 
-            
             cxbxPINorBOX.Text = cxbxPINorBOX.Items[0].ToString(); // options avail to user.
-
-
 
             txbxInputImageFolder.Text = projectFolderPath;
             if((!string.IsNullOrWhiteSpace(projectFolderPath)) && Directory.Exists(txbxInputImageFolder.Text))
@@ -125,6 +123,7 @@ namespace inspectionUI
             {
                 MessageBox.Show("having trouble loading form... ");
             }
+
         }
 
         void ActivateMLserver()
@@ -224,6 +223,7 @@ namespace inspectionUI
             return rect;
 
         }
+
 
         public void pictureBox1_Paint(object sender, PaintEventArgs e)
         {
@@ -461,15 +461,43 @@ namespace inspectionUI
 
                 // update image with rects
 
-                if (img_name == image_path)
+                Rectangle r_n = new Rectangle(loc_x, loc_y, def_w, def_h);
+
+                //if (img_name == image_path)
+                //{
+                //    //Rectangle r_n = new Rectangle(loc_x, loc_y, def_w, def_h);
+
+                //    UpdatePictureBoxWithRectangle(pictureBox1, r_n, Color.Red, thickness);
+
+                //    totalDefects = i;
+                //}
+
+                if (img_name == leftView.images[imageIndex])
                 {
-                    Rectangle r_n = new Rectangle(loc_x, loc_y, def_w, def_h);
-
-                    UpdatePictureBoxWithRectangle(pictureBox1, r_n, Color.Red, thickness);
-
+                    //addDefects2img();
+                    UpdatePictureBoxWithRectangle(pictureBox2, r_n, Color.Red, thickness);
                     totalDefects = i;
                 }
 
+                if (img_name == centerView.images[imageIndex])
+                {
+                    //addDefects2img();
+                    //pictureBox1.Invalidate();
+
+                    UpdatePictureBoxWithRectangle(pictureBox1, r_n, Color.Red, thickness);
+                    totalDefects = i;
+                    //this.pictureBox1.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBox1_Paint);
+
+
+                    //Refresh();
+                }
+
+                if (img_name == rightView.images[imageIndex])
+                {
+                    //addDefects2img();
+                    UpdatePictureBoxWithRectangle(pictureBox3, r_n, Color.Red, thickness);
+                    totalDefects = i;
+                }
 
             }
         }
@@ -547,21 +575,62 @@ namespace inspectionUI
 
             
         }
+
+        private void paintThatBox(object sender, EventArgs e)
+        {
+            // not sure what to do here..
+
+            Color color = Color.Green;
+            int thickness = 3; 
+            Pen rectPen = new Pen(color, thickness);
+
+            //Rectangle rectangle = new Rectangle({X=333,Y=222,Height=333,Width=333 });
+
+            //e.Graphics.DrawRectangle(rectPen, rectangle);
+
+            
+        }
         
 
         private void UpdatePictureBoxWithRectangle(PictureBox pictureBox, Rectangle rectangle, Color color, int thickness)
         {
-            // update picturebox with rect
-            using (Graphics graphics = pictureBox.CreateGraphics())
-            {
+            // having trouble with rectangles showing up on pictureboxes...
 
-                Pen rectPen = new Pen(color, thickness);
+            ////pictureBox.Invalidate(); //added new
 
-                graphics.DrawRectangle(rectPen, rectangle);
-            }
+            //if (pictureBox.Image != null)
+            //{
+            //    pictureBox.Image.Dispose(); // dispose old img.
+            //}
 
-            pictureBox.BringToFront();
-            pictureBox.Update();
+            ////pictureBox.Image.Dispose(); // dispose old img.
+            ////pictureBox.Image = null;
+
+            //GC.Collect(); // take out the trash.
+
+            //Graphics g = pictureBox.CreateGraphics();
+            //g.Clear(pictureBox.BackColor);
+
+            Pen rectPen = new Pen(color, thickness);
+
+
+            //// update picturebox with rect
+
+            //g.DrawRectangle(rectPen, rectangle);
+
+            //if (pictureBox != null)
+            //{
+            //    pictureBox.BringToFront();
+            //    pictureBox.Update();
+            //    //pictureBox.Refresh(); //added new
+            //}
+
+            var g = pictureBox.CreateGraphics();
+            g.DrawRectangle(rectPen, rectangle);
+
+            
+
+
         }
 
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
@@ -879,6 +948,8 @@ namespace inspectionUI
                 adjustpicturebox(pictureBox3, "right");
 
                 Refresh();
+
+                addDefects2img(); // add defects to image.
             }
         }
 
@@ -896,6 +967,8 @@ namespace inspectionUI
                 adjustpicturebox(pictureBox3, "right");
 
                 Refresh();
+
+                addDefects2img(); // update image with defects if already selected
             }
 
         }
@@ -1023,12 +1096,12 @@ namespace inspectionUI
                 int i = dataGridView1.SelectedRows[0].Index + 1;
 
                 // Get the values from the selected row
-                int loc_x = Convert.ToInt32(dataGridView1.SelectedRows[0].Cells[7].Value);
-                int loc_y = Convert.ToInt32(dataGridView1.SelectedRows[0].Cells[8].Value);
-                var def_h = Convert.ToInt32(dataGridView1.SelectedRows[0].Cells[9].Value);
-                var def_w = Convert.ToInt32(dataGridView1.SelectedRows[0].Cells[10].Value);
+                int loc_x = Convert.ToInt32(dataGridView1.SelectedRows[0].Cells[14].Value);
+                int loc_y = Convert.ToInt32(dataGridView1.SelectedRows[0].Cells[15].Value);
+                var def_h = Convert.ToInt32(dataGridView1.SelectedRows[0].Cells[12].Value);
+                var def_w = Convert.ToInt32(dataGridView1.SelectedRows[0].Cells[13].Value);
 
-                var image_path_name = dataGridView1.SelectedRows[0].Cells[10].Value.ToString();
+                var image_path_name = dataGridView1.SelectedRows[0].Cells[11].Value.ToString();
 
                 Rectangle rect = new Rectangle();
 
@@ -1037,9 +1110,24 @@ namespace inspectionUI
                 rect.Width = Convert.ToInt32(def_w * s);
                 rect.Height = Convert.ToInt32(def_h * s);
 
-                addDefects2img();
+                if (image_path_name == leftView.images[imageIndex])
+                {
+                    //addDefects2img();
+                    UpdatePictureBoxWithRectangle(pictureBox2, rect, Color.Yellow, thickness);
+                }
 
-                UpdatePictureBoxWithRectangle(pictureBox1, rect, Color.Yellow, thickness);
+                if (image_path_name == centerView.images[imageIndex])
+                {
+                    //addDefects2img();
+                    UpdatePictureBoxWithRectangle(pictureBox1, rect, Color.Yellow, thickness);
+                }
+
+                if (image_path_name == rightView.images[imageIndex])
+                {
+                    //addDefects2img();
+                    UpdatePictureBoxWithRectangle(pictureBox3, rect, Color.Yellow, thickness);
+                }
+
             }
         }
 
@@ -1127,8 +1215,11 @@ namespace inspectionUI
 
         public void RunMLmodel(string csvDefectPath)
         {
-            string mlModelPath = @"C:\Users\TSI\source\repos\tsi-wsi-inspector-ui\inspectorUI\invoke_ml_model.py";
-            string imagepath = centerView.images[imageIndex];
+            string mlModelPath = @"C:\Users\TSI\source\repos\tsi-wsi-inspector-ui\bbox_maker\invoke_ml_model.py";
+            string imagepath1 = leftView.images[imageIndex];
+            string imagepath2 = centerView.images[imageIndex];
+            string imagepath3 = rightView.images[imageIndex];
+
             //string csvDefectPath = @"C:\Users\TSI\Desktop\defects.csv";
 
             try
@@ -1139,7 +1230,7 @@ namespace inspectionUI
                 pyStartInfo.CreateNoWindow = false; //true before, we are debugging right now...
                 pyStartInfo.RedirectStandardOutput = false; //true before
                 pyStartInfo.RedirectStandardError = false; //true before
-                pyStartInfo.Arguments = $"\"{mlModelPath}\" \"{imagepath}\" \"{csvDefectPath}\" ";
+                pyStartInfo.Arguments = $"\"{mlModelPath}\" \"{imagepath1}\" \"{imagepath2}\" \"{imagepath3}\" \"{csvDefectPath}\" ";
 
                 using (var pythonProcess = Process.Start(pyStartInfo))
                 {

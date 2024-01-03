@@ -240,10 +240,22 @@ def plot_defects(image_path, df_defects, title_label, output_path):
 def main():
 
     mdl_path = sys.argv[0]
-    input_image_path = sys.argv[1]
-    csv_defect_path = sys.argv[2]
 
-    print('inference on image: ', input_image_path)
+    input_image_path1 = sys.argv[1]
+    input_image_path2 = sys.argv[2]
+    input_image_path3 = sys.argv[3]
+
+    images = []
+
+    csv_defect_path = sys.argv[4]
+
+    images.append(input_image_path1)
+    images.append(input_image_path2)
+    images.append(input_image_path3)
+
+    #print('inference on image: ', input_image_path1)
+    #print('inference on image: ', input_image_path2)
+    #print('inference on image: ', input_image_path3)
 
     model_path = r'C:\Users\TSI\Desktop\TSI  -object-detection-pytorch-wandb-coco\outputdir\model_37_GOODONE.pth'
 
@@ -386,75 +398,77 @@ def main():
 
     print('total warmup seconds: ', time.time() - t0)
 
-
-    img_r = cv2.imread(input_image_path)
-    img_c = cv2.cvtColor(img_r, cv2.COLOR_BGR2RGB)
-
-    img_t = img_c.transpose([2,0,1])
-
-    img_t = np.expand_dims(img_t, axis=0)
-    img_t = img_t/255.0
-    img_t = torch.FloatTensor(img_t)
-
-    print('shape of img_t ', np.shape(img_t))
-
-    img_t = img_t.to(device)
-    detections = model(img_t)[0]
-
-    #loop over the detections
-    prediction_labels = []
-    prediction_vals = []
-
-    preds = []
-
-    inputname = input_image_path.split('\\')
-    
-    for i in range(0, len(detections["boxes"])):
-        confidence = detections["scores"][i]
-
-        #print('confidence: ', confidence)
-
-        con = 0.45#0.5#0.8
-
-        if confidence > con:
-
-            idx = int(detections["labels"][i])
-            box = detections["boxes"][i].detach().cpu().numpy()
-            (startX, startY, endX, endY) = box.astype("int")
-            # display the prediction to our terminal
-            #print('prediction val: ', idx-1)
-            prediction_vals.append(idx-1)
-            label = "{}: {:.2f}%".format(CLASSES[idx-1], confidence * 100)
-            #print("[PREDICTION:] {}".format(label))
-            prediction_labels.append(label)
-            # draw the bounding box and label on the image
-            cv2.rectangle(img_c, (startX, startY), (endX, endY),
-                COLORS[idx-1], 2)
-            y = startY - 15 if startY - 15 > 15 else startY + 15
-            cv2.putText(img_c, label, (startX, y),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, COLORS[idx-1], 5)
-            
-            preds.append([inputname[-1],startX, startY, endX, endY, CLASSES[idx-1], float(confidence * 100)])
-            
-    print(' [PREDICTIONS: ]', prediction_labels, prediction_vals)
-
-    t1 = time.time()
-    total_time = t1-t0
-    print('total inference time in seconds: ', total_time)
-    defectsImgName = inputname[-1].split('.')
-    plt.imshow(img_c)
-    plt.savefig(csv_defect_path + "\\"+ defectsImgName[0] + ".pdf")
-    plt.show()
+    for input_image_path in images:
 
 
+        img_r = cv2.imread(input_image_path)
+        img_c = cv2.cvtColor(img_r, cv2.COLOR_BGR2RGB)
 
-    df = pd.DataFrame(preds,columns=["img_name","x_i","y_i","x_f", "y_f", "label", "confidence"])
+        img_t = img_c.transpose([2,0,1])
 
-    print(df)
+        img_t = np.expand_dims(img_t, axis=0)
+        img_t = img_t/255.0
+        img_t = torch.FloatTensor(img_t)
 
-    # saving the dataframe
-    #df.to_csv(csv_defect_path +"\\" + "defects.csv")
-    df.to_csv(csv_defect_path +"\\" + "defects" + defectsImgName[0]+ ".csv")
+        print('shape of img_t ', np.shape(img_t))
+
+        img_t = img_t.to(device)
+        detections = model(img_t)[0]
+
+        #loop over the detections
+        prediction_labels = []
+        prediction_vals = []
+
+        preds = []
+
+        inputname = input_image_path.split('\\')
+        
+        for i in range(0, len(detections["boxes"])):
+            confidence = detections["scores"][i]
+
+            #print('confidence: ', confidence)
+
+            con = 0.45#0.5#0.8
+
+            if confidence > con:
+
+                idx = int(detections["labels"][i])
+                box = detections["boxes"][i].detach().cpu().numpy()
+                (startX, startY, endX, endY) = box.astype("int")
+                # display the prediction to our terminal
+                #print('prediction val: ', idx-1)
+                prediction_vals.append(idx-1)
+                label = "{}: {:.2f}%".format(CLASSES[idx-1], confidence * 100)
+                #print("[PREDICTION:] {}".format(label))
+                prediction_labels.append(label)
+                # draw the bounding box and label on the image
+                cv2.rectangle(img_c, (startX, startY), (endX, endY),
+                    COLORS[idx-1], 2)
+                y = startY - 15 if startY - 15 > 15 else startY + 15
+                cv2.putText(img_c, label, (startX, y),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, COLORS[idx-1], 5)
+                
+                preds.append([inputname[-1],startX, startY, endX, endY, CLASSES[idx-1], float(confidence * 100)])
+                
+        print(' [PREDICTIONS: ]', prediction_labels, prediction_vals)
+
+        t1 = time.time()
+        total_time = t1-t0
+        print('total inference time in seconds: ', total_time)
+        defectsImgName = inputname[-1].split('.')
+        plt.imshow(img_c)
+        plt.savefig(csv_defect_path + "\\"+ defectsImgName[0] + ".pdf")
+        plt.show()
+
+
+
+        df = pd.DataFrame(preds,columns=["img_name","x_i","y_i","x_f", "y_f", "label", "confidence"])
+
+        print(df)
+
+        # saving the dataframe
+        #df.to_csv(csv_defect_path +"\\" + "defects.csv")
+        df.to_csv(csv_defect_path +"\\" + "defects" + defectsImgName[0]+ ".csv")
 
 
 if __name__ == "__main__":

@@ -15,3 +15,8 @@ rust
 wtf
 somethingNEW
 feet
+test_new
+new defect
+rust_new
+new rust
+sticker

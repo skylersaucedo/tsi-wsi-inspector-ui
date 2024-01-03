@@ -16,8 +16,8 @@ namespace inspectionUI
         //public string defects_path = @"C:\Users\sauce\OneDrive\Desktop\inspectorUI-master\inspectorUI\labels.txt";
         //public string defectslog_path = @"C:\Users\sauce\OneDrive\Desktop\inspectorUI-master\inspectorUI\defectslog.txt";
 
-        public string defects_path = @"C:\Users\TSI\source\repos\tsi-wsi-inspector-ui\inspectorUI\labels.txt";
-        public string defectslog_path = @"C:\Users\TSI\source\repos\tsi-wsi-inspector-ui\inspectorUI\defectslog.txt";
+        public string defects_path = @"C:\Users\TSI\source\repos\tsi-wsi-inspector-ui\bbox_maker\labels.txt";
+        public string defectslog_path = @"C:\Users\TSI\source\repos\tsi-wsi-inspector-ui\bbox_maker\defectslog.txt";
 
 
         public List<string> currentDefects = new List<string>();
