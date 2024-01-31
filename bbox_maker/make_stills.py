@@ -10,6 +10,10 @@ from distutils.dir_util import copy_tree
 import shutil
 from pathlib import Path
 from tqdm import tqdm
+import boto3
+
+client = boto3.client('s3', region_name = 'us-east-2')
+bucket = 'tsi-mlops'
 
 
 def make_stills_from_vid(vid_path, save_path, project_name, BoxOrPin, passnum, camnum):
@@ -45,6 +49,13 @@ def make_stills_from_vid(vid_path, save_path, project_name, BoxOrPin, passnum, c
         frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
         cv2.imwrite(img_name, frame)
+
+        # add upload to s3 here
+
+        client.upload_file(img_name, bucket, img_name)
+
+
+
         image_list.append(img_name)
 
         # Increment the frame counter

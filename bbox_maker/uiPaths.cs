@@ -32,8 +32,8 @@ namespace inspectorUI
 
         // ----- TSI HMI PATHS BELOW --------
 
-        //public string projectPath = @"\\TSI-AIO-DT01\Users\prime\Documents\scans";
-        public string projectPath = @"C:\Users\TSI\Desktop\boxscans-jan3";
+        public string projectPath = @"\\TSI-AIO-DT01\Users\prime\Documents\scans";
+        //public string projectPath = @"C:\Users\TSI\Desktop\boxscans-jan3";
 
         public string backupImageFolder = @"C:\wsi-project-scans\20231016-100646";
 

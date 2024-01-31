@@ -594,39 +594,39 @@ namespace inspectionUI
 
         private void UpdatePictureBoxWithRectangle(PictureBox pictureBox, Rectangle rectangle, Color color, int thickness)
         {
-            // having trouble with rectangles showing up on pictureboxes...
+            //// having trouble with rectangles showing up on pictureboxes...
 
-            ////pictureBox.Invalidate(); //added new
+            //////pictureBox.Invalidate(); //added new
 
-            //if (pictureBox.Image != null)
-            //{
-            //    pictureBox.Image.Dispose(); // dispose old img.
-            //}
+            ////if (pictureBox.Image != null)
+            ////{
+            ////    pictureBox.Image.Dispose(); // dispose old img.
+            ////}
 
-            ////pictureBox.Image.Dispose(); // dispose old img.
-            ////pictureBox.Image = null;
+            //////pictureBox.Image.Dispose(); // dispose old img.
+            //////pictureBox.Image = null;
 
-            //GC.Collect(); // take out the trash.
+            ////GC.Collect(); // take out the trash.
 
-            //Graphics g = pictureBox.CreateGraphics();
-            //g.Clear(pictureBox.BackColor);
+            ////Graphics g = pictureBox.CreateGraphics();
+            ////g.Clear(pictureBox.BackColor);
 
-            Pen rectPen = new Pen(color, thickness);
+            //Pen rectPen = new Pen(color, thickness);
 
 
-            //// update picturebox with rect
+            ////// update picturebox with rect
 
+            ////g.DrawRectangle(rectPen, rectangle);
+
+            ////if (pictureBox != null)
+            ////{
+            ////    pictureBox.BringToFront();
+            ////    pictureBox.Update();
+            ////    //pictureBox.Refresh(); //added new
+            ////}
+
+            //var g = pictureBox.CreateGraphics();
             //g.DrawRectangle(rectPen, rectangle);
-
-            //if (pictureBox != null)
-            //{
-            //    pictureBox.BringToFront();
-            //    pictureBox.Update();
-            //    //pictureBox.Refresh(); //added new
-            //}
-
-            var g = pictureBox.CreateGraphics();
-            g.DrawRectangle(rectPen, rectangle);
 
             
 

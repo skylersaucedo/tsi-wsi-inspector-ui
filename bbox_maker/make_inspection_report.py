@@ -13,6 +13,7 @@ import sys
 from docx import Document
 from docx.shared import Inches
 from matplotlib.backends.backend_pdf import PdfPages
+import subprocess
 
 def make_pdf_report(defect_log_path, logo_file_path, save_pdf_path):
     """
@@ -89,7 +90,7 @@ def make_pdf_report(defect_log_path, logo_file_path, save_pdf_path):
                                          'datetime: ', datetime,
                                          ))
                     
-                    ax.text(0,1,textstr, fontsize=14, verticalalignment='top')
+                    #ax.text(0,1,textstr, fontsize=14, verticalalignment='top')
                     
                     # ax.text(0.0,0.9, "Image Name: " + image_path)
                     # ax.text(0.0,0.8, "Datetime: " + datetime)
@@ -189,8 +190,8 @@ def make_pdf_report(defect_log_path, logo_file_path, save_pdf_path):
 
     # plt.show()
 
-
-
+    # open new file
+    subprocess.Popen(svpath,shell=True)
 
 def make_docx_report(defect_log_path, logo_file_path, save_pdf_path):
     """

@@ -20,3 +20,7 @@ new defect
 rust_new
 new rust
 sticker
+pipe-ID
+camera
+computer
+light
