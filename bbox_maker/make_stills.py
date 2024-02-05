@@ -50,9 +50,9 @@ def make_stills_from_vid(vid_path, save_path, project_name, BoxOrPin, passnum, c
 
         cv2.imwrite(img_name, frame)
 
-        # add upload to s3 here
+        # Upload to S3 here... commented out since we're sending video to S3
 
-        client.upload_file(img_name, bucket, img_name)
+        #client.upload_file(img_name, bucket, img_name)
 
 
 
@@ -156,7 +156,7 @@ def main(root_vid_pth):
             os.makedirs(videopath)
             videofilename = splity[-1]
             shutil.move(f, videopath + "\\" + videofilename)
-
+            
         else:
             print('images already generated, moving on to next folder...')
 

@@ -4,7 +4,11 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-
+using Amazon;
+using Amazon.Runtime;
+using Amazon.S3.Transfer;
+using Amazon.S3;
+using System.Threading.Tasks;
 
 namespace inspectorUI
 {
@@ -18,9 +22,25 @@ namespace inspectorUI
 
         public uiPaths appPaths = new uiPaths();
 
+        AWSCredentials awsCredentials;
+        public RegionEndpoint region = RegionEndpoint.USEast1;
+        public string bucket = "tsi-raw-videos";
+        public string bucketSubDir = "test-subdir"; // Optional subdirectory within the bucket
+        public string fileNameInS3 = "testvideo-feb5.avi"; // Desired file name in S3
+
+
         public frmProjectFolder()
         {
             InitializeComponent();
+        }
+
+        public static async Task sendVidFile(string fname, string bucketName, string bucketSubDirName, string S3fname, RegionEndpoint r)
+        {
+
+            var client = new AmazonS3Client(r);
+            var transferUtility = new TransferUtility(client);
+            await transferUtility.UploadAsync(fname, bucketName, $"{bucketSubDirName}/{S3fname}");
+            Console.WriteLine("File uploaded successfully!");
         }
 
         public void frmProjectFolder_Load(object sender, EventArgs e)
@@ -72,6 +92,10 @@ namespace inspectorUI
                 {
                     MessageBox.Show("making stills...");
 
+                    var watch = System.Diagnostics.Stopwatch.StartNew();
+
+                    
+
                     makeStillsfromProjectFolder(inputImageFolder);
 
                     // images are made, need to populate new project folder
@@ -83,6 +107,18 @@ namespace inspectorUI
                     string newInputFolderName = appPaths.newProjectPath + "\\" + lastFolderName;
 
                     frmMain frmMain = new frmMain(newInputFolderName);
+
+                    // Send video to S3 here.. need to find video filepaths and send them here.
+
+                    string selectedFileName = "\\\\TSI-AIO-DT01\\Users\\prime\\Documents\\scans\\20240205-111916\\RAW\\BOX\\pass1\\cam0\\video_p1_id0.avi";
+
+                    _ = sendVidFile(selectedFileName, bucket, bucketSubDir, fileNameInS3, region);
+
+                    watch.Stop();
+                    var elapsedMs = watch.ElapsedMilliseconds;
+
+                    Console.WriteLine("file transfer time: " + elapsedMs.ToString());
+
                     frmMain.Show();
 
                     this.Hide(); // hide, but don't close instance.
